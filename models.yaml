@@ -64,7 +64,7 @@ models:
 
   - name: mistral-7b-instruct-v0.3-llamacpp-local
     backend: openai_compatible
-    model_id: bartowski/Mistral-7B-Instruct-v0.3-GGUF:Mistral-7B-Instruct-v0.3-f16.gguf
+    model_id: bartowski/Mistral-7B-Instruct-v0.3-GGUF:Mistral-7B-Instruct-v0.3-f32.gguf  # confirmed — this repo only ships f32, no f16 variant
     base_url: http://localhost:8082/v1
     api_key_env: null
     supports_tool_calling: true
