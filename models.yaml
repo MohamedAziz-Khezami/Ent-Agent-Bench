@@ -7,127 +7,131 @@ models:
     api_key_env: null
     supports_tool_calling: true   # confirmed via a real /v1/chat/completions call with tools=[...]
 
-  # ── SGLang fleet ────────────────────────────────────────────────────────
-  # Switched from llama.cpp (GGUF) to SGLang: native HF safetensors instead
-  # of GGUF. Every model is bf16/full-precision EXCEPT the two 70B+ entries
-  # (qwen2.5-72b, command-r-plus-104b), which are deliberately pinned to
-  # pre-quantized FP8-dynamic checkpoints — a real exception, not an
-  # oversight, see the comment on each of those two entries for why. Each
-  # entry assumes its own
-  # `python -m sglang.launch_server --model-path <repo> --port <port>`
-  # instance; only whichever ones are actually running will respond.
-  # Ports assigned sequentially, 8080 upward, one per model — SGLang serves
-  # one model per process, same as llama.cpp (no built-in multi-model
-  # swapping on a single server instance).
+  # ── llama.cpp fleet ────────────────────────────────────────────────────
+  # llama-server serves exactly ONE model per process — there's no
+  # multi-model swapping built into llama.cpp itself. Each entry below
+  # assumes its own `llama-server -m <gguf> --port <port>` instance; only
+  # whichever ones are actually running will respond when a run hits them.
+  # Ports assigned sequentially, 8080 upward, one per model.
   #
-  # Use `--tp <N>` to tensor-parallel a model across N GPUs in one process —
-  # this is SGLang's native multi-GPU story, cleaner than llama.cpp's
-  # layer-offload split. On a 4x RTX 5090 (128GB VRAM total) workstation:
-  #   - up to ~30B models: --tp 1 or --tp 2 comfortably
-  #   - 70B+ models: --tp 4 to spread the full weight set across all 4 GPUs
+  # NO QUANTIZATION: every model_id below is pinned to the repo's
+  # unquantized file (suffix "-f16.gguf", or "-f32.gguf" where that's the
+  # only full-precision file offered) instead of a bare repo name, so a
+  # runtime pull can't silently grab a quantized default — EXCEPT the two
+  # 70B+ entries (qwen2.5-72b, command-r-plus-104b), which are a deliberate
+  # 8-bit exception: full F16 at that size exceeds this workstation's 128GB
+  # VRAM and would spill to slow system RAM, so those two are pinned to
+  # Q8_0 GGUF files instead (near-lossless, fits fully in VRAM). Rough
+  # F16/F32 footprints: 8B~16GB, 12-16B~24-32GB, 20B~40GB, 26-30B (MoE,
+  # stores ALL experts)~52-60GB, 72B~144GB (Q8_0~77GB instead), 104B~208GB
+  # (Q8_0~110GB instead). Only the filenames noted "(confirmed)" below were
+  # checked against the actual HF file listing; the rest follow the same
+  # bartowski/unsloth/ggml-org naming convention but haven't been
+  # individually confirmed — verify the filename resolves before a real run.
   #
-  # supports_tool_calling / --tool-call-parser: SGLang ships built-in parsers
-  # for several known formats (hermes, llama3, mistral, qwen25, deepseekv3,
-  # etc.) — pass the matching `--tool-call-parser <name>` flag at launch or
-  # tool_calls will come back empty even for models that do support it.
-  # Flags below reflect the same sourced findings as before, just re-scoped
-  # to SGLang's parser support instead of llama.cpp's:
-  #   - gpt-oss-20b: SGLang has an explicit "gptoss" tool-call parser
-  #     (unlike llama.cpp, which lacked working support) — set true here,
-  #     but still verify a real tool_calls response before trusting it.
-  #   - qwen3-coder-30b-a3b: use `--tool-call-parser qwen25` (XML-style tags
-  #     Qwen3-Coder still emits are handled by SGLang's Qwen parser) —
-  #     verify before trusting.
-  #   - deepseek-coder-v2-lite-16b: no confirmed dedicated SGLang parser at
-  #     time of writing; same verify-before-trusting caveat as before.
+  # sm_120 (RTX 5090) note: llama.cpp compiles its CUDA kernels directly
+  # against whatever -DCMAKE_CUDA_ARCHITECTURES you build for, rather than
+  # depending on someone else's prebuilt architecture-specific wheel (the
+  # class of problem that blocked SGLang/sgl-kernel on this hardware) —
+  # build with -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=120.
+  #
+  # supports_tool_calling reflects real, sourced findings, not assumptions:
+  #   - gpt-oss-20b: real, reproduced reports of llama.cpp specifically
+  #     failing to emit proper tool_call structures (reasons about tools in
+  #     plain text instead) across quantizations — set false so it defaults
+  #     to text_block instead of silently producing parse_error-heavy runs.
+  #   - qwen3-coder-30b-a3b: uses XML-style tool tags, not the Hermes JSON
+  #     style llama.cpp's autoparser defaults to for most Qwen models —
+  #     verify the actual tool_calls come back structured before trusting
+  #     this flag; if they don't, flip to false.
+  #   - deepseek-coder-v2-lite-16b: tool-calling only confirmed via a
+  #     community-added Ollama template, not the base model's own format —
+  #     same verify-before-trusting caveat.
 
-  - name: qwen3-8b-instruct-sglang-local
+  - name: qwen3-8b-instruct-llamacpp-local
     backend: openai_compatible
-    model_id: Qwen/Qwen3-8B
+    model_id: Qwen/Qwen3-8B-GGUF:Qwen3-8B-f16.gguf
     base_url: http://localhost:8080/v1
     api_key_env: null
-    supports_tool_calling: true  # --tool-call-parser qwen25
+    supports_tool_calling: true
 
-  - name: llama3.1-8b-instruct-sglang-local
+  - name: llama3.1-8b-instruct-llamacpp-local
     backend: openai_compatible
-    model_id: meta-llama/Llama-3.1-8B-Instruct
+    model_id: bartowski/Meta-Llama-3.1-8B-Instruct-GGUF:Meta-Llama-3.1-8B-Instruct-f32.gguf  # confirmed
     base_url: http://localhost:8081/v1
     api_key_env: null
-    supports_tool_calling: true  # --tool-call-parser llama3, confirmed via a real /v1/chat/completions call with tools=[...]
+    supports_tool_calling: true  # confirmed via a real /v1/chat/completions call with tools=[...]
 
-  - name: mistral-7b-instruct-v0.3-sglang-local
+  - name: mistral-7b-instruct-v0.3-llamacpp-local
     backend: openai_compatible
-    model_id: mistralai/Mistral-7B-Instruct-v0.3
+    model_id: bartowski/Mistral-7B-Instruct-v0.3-GGUF:Mistral-7B-Instruct-v0.3-f16.gguf
     base_url: http://localhost:8082/v1
     api_key_env: null
-    supports_tool_calling: true  # --tool-call-parser mistral
+    supports_tool_calling: true
 
-  - name: gemma4-12b-sglang-local
+  - name: gemma4-12b-llamacpp-local
     backend: openai_compatible
-    model_id: google/gemma-4-12B-it
+    model_id: unsloth/gemma-4-12b-it-GGUF:gemma-4-12b-it-F16.gguf
     base_url: http://localhost:8083/v1
     api_key_env: null
-    supports_tool_calling: true  # confirm SGLang parser support at launch time — gemma tool-call format not yet verified here
+    supports_tool_calling: true
 
-  - name: qwen2.5-14b-instruct-sglang-local
+  - name: qwen2.5-14b-instruct-llamacpp-local
     backend: openai_compatible
-    model_id: Qwen/Qwen2.5-14B-Instruct
+    model_id: bartowski/Qwen2.5-14B-Instruct-GGUF:Qwen2.5-14B-Instruct-f16.gguf  # confirmed
     base_url: http://localhost:8084/v1
     api_key_env: null
-    # the quantization-sensitivity caveat from the llama.cpp/GGUF version of
-    # this entry no longer applies — SGLang serves the native safetensors
-    # checkpoint with no quantization by default
-    supports_tool_calling: true  # --tool-call-parser qwen25
+    # quantization has been reported to measurably affect this model's
+    # function-calling behavior — pinned to the full F16 file specifically
+    # to avoid that risk
+    supports_tool_calling: true
 
-  - name: gpt-oss-20b-sglang-local
+  - name: gpt-oss-20b-llamacpp-local
     backend: openai_compatible
-    model_id: openai/gpt-oss-20b
+    model_id: ggml-org/gpt-oss-20b-GGUF:gpt-oss-20b-f16.gguf
     base_url: http://localhost:8085/v1
     api_key_env: null
-    supports_tool_calling: true  # see header note — SGLang has a dedicated "gptoss" parser, unlike llama.cpp; verify before trusting
+    supports_tool_calling: false  # see header note — real, reproduced llama.cpp-specific failures
 
-  - name: gemma4-26b-a4b-sglang-local
+  - name: gemma4-26b-a4b-llamacpp-local
     backend: openai_compatible
-    model_id: google/gemma-4-26B-A4B-it
+    model_id: unsloth/gemma-4-26B-A4B-it-GGUF:gemma-4-26B-A4B-it-F16.gguf
     base_url: http://localhost:8086/v1
     api_key_env: null
-    supports_tool_calling: true  # confirm SGLang parser support at launch time — gemma tool-call format not yet verified here
+    supports_tool_calling: true
 
-  - name: qwen3-coder-30b-a3b-sglang-local
+  - name: qwen3-coder-30b-a3b-llamacpp-local
     backend: openai_compatible
-    model_id: Qwen/Qwen3-Coder-30B-A3B-Instruct
+    model_id: unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Qwen3-Coder-30B-A3B-Instruct-F16.gguf
     base_url: http://localhost:8087/v1
     api_key_env: null
-    supports_tool_calling: true  # see header note — --tool-call-parser qwen25, verify before trusting
+    supports_tool_calling: true  # see header note — uses XML tool tags, verify before trusting
 
-  - name: deepseek-coder-v2-lite-16b-sglang-local
+  - name: deepseek-coder-v2-lite-16b-llamacpp-local
     backend: openai_compatible
-    model_id: deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct
+    model_id: bartowski/DeepSeek-Coder-V2-Lite-Instruct-GGUF:DeepSeek-Coder-V2-Lite-Instruct-f16.gguf
     base_url: http://localhost:8088/v1
     api_key_env: null
-    supports_tool_calling: true  # see header note — no confirmed dedicated SGLang parser yet, verify before trusting
+    supports_tool_calling: true  # see header note — community template, verify before trusting
 
-  - name: qwen2.5-72b-instruct-fp8-sglang-local
+  - name: qwen2.5-72b-instruct-q8-llamacpp-local
     backend: openai_compatible
-    # kept as an 8-bit exception, same reasoning as the old llama.cpp Q8_0
-    # pin, but re-scoped to SGLang's actual quant format: FP8, not GGUF's
-    # Q8_0 block quantization (SGLang doesn't read GGUF at all). RTX 5090 is
-    # Blackwell, so FP8 runs on native tensor-core support rather than being
-    # emulated — pinned to a pre-quantized FP8-dynamic checkpoint (~72GB)
-    # rather than the bf16 original (~144GB) + on-the-fly --quantization fp8,
-    # since a pre-quantized checkpoint is the more reproducible choice. --tp
-    # 2 or 4 to spread it across the RTX 5090s.
-    model_id: mesolitica/Qwen2.5-72B-Instruct-FP8
+    # deliberate 8-bit exception (see header note): F16 at 72B is ~144GB,
+    # exceeds 128GB VRAM. Q8_0 (~77GB, confirmed 77.26GB on HF) fits
+    # entirely in VRAM across the 4x RTX 5090s at full GPU speed.
+    model_id: bartowski/Qwen2.5-72B-Instruct-GGUF:Qwen2.5-72B-Instruct-Q8_0.gguf  # confirmed
     base_url: http://localhost:8089/v1
     api_key_env: null
-    supports_tool_calling: true  # --tool-call-parser qwen25, native Hermes-style JSON tool calls; verify FP8 checkpoint preserves this before trusting
+    supports_tool_calling: true  # native Hermes-style JSON tool calls, same family as the other Qwen2.5 entries above
 
-  - name: command-r-plus-104b-fp8-sglang-local
+  - name: command-r-plus-104b-q8-llamacpp-local
     backend: openai_compatible
-    # same reasoning as qwen2.5-72b-fp8 above: FP8-dynamic checkpoint
-    # (~104GB) instead of bf16 (~208GB), native Blackwell FP8 tensor cores.
-    # --tp 4 to spread across all 4 GPUs.
-    model_id: FriendliAI/c4ai-command-r-plus-fp8
+    # deliberate 8-bit exception (see header note): F16 at 104B is ~208GB,
+    # exceeds 128GB VRAM. Q8_0 (~110GB, confirmed: split into 4 standard
+    # parts llama.cpp auto-merges from the first) fits with ~18GB headroom
+    # for KV cache/context — tighter than the 72B entry, watch at long
+    # context lengths.
+    model_id: LiteLLMs/c4ai-command-r-plus-GGUF:Q8_0/Q8_0-00001-of-00004.gguf  # confirmed
     base_url: http://localhost:8090/v1
     api_key_env: null
-    supports_tool_calling: true  # trained specifically for zero-shot multi-step tool use; verify SGLang parser support + FP8 checkpoint fidelity before trusting
+    supports_tool_calling: true  # trained specifically for zero-shot multi-step tool use
