@@ -60,14 +60,20 @@ models:
     model_id: bartowski/Meta-Llama-3.1-8B-Instruct-GGUF:Meta-Llama-3.1-8B-Instruct-f32.gguf  # confirmed
     base_url: http://localhost:8081/v1
     api_key_env: null
-    supports_tool_calling: true  # confirmed via a real /v1/chat/completions call with tools=[...]
+    supports_tool_calling: false
 
   - name: mistral-7b-instruct-v0.3-llamacpp-local
     backend: openai_compatible
     model_id: bartowski/Mistral-7B-Instruct-v0.3-GGUF:Mistral-7B-Instruct-v0.3-f32.gguf  # confirmed — this repo only ships f32, no f16 variant
     base_url: http://localhost:8082/v1
     api_key_env: null
-    supports_tool_calling: true
+    # real, reproduced finding (not an assumption): every --chat-template
+    # override for this exact GGUF broke prompt construction entirely, and
+    # plain --jinja alone never populates tool_calls even for a trivial
+    # single-tool prompt — confirmed again via a full real episode run
+    # (tool_calls_made: 0 on all 4 surfaces, full 20-turn budget burned,
+    # no final answer). Defaults to text_block instead of wasting turns.
+    supports_tool_calling: false
 
   - name: gemma4-12b-llamacpp-local
     backend: openai_compatible
