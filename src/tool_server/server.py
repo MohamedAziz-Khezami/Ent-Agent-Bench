@@ -20,7 +20,7 @@ from src.tool_server.models import (
     CreateContactArgs, CreateDealArgs, CreateLeadArgs, FindContactsArgs,
     FindDealsArgs, FindLeadsArgs, GetActivitiesArgs, GetByIdArgs,
     GetFollowupsArgs, LogActivityArgs, ScheduleFollowupArgs, UpdateContactArgs,
-    UpdateDealArgs, UpdateLeadArgs,
+    UpdateDealArgs, UpdateFollowupArgs, UpdateLeadArgs,
 )
 
 _conn: sqlite3.Connection | None = None
@@ -113,7 +113,7 @@ async def create_lead(args: CreateLeadArgs):
 
 @app.post("/update_lead", operation_id="update_lead")
 async def update_lead(args: UpdateLeadArgs):
-    """Update a lead's status and/or score."""
+    """Update a lead's status, score, and/or source."""
     return services.update_lead(_conn, args)
 
 
@@ -139,6 +139,12 @@ async def log_activity(args: LogActivityArgs):
 async def schedule_followup(args: ScheduleFollowupArgs):
     """Schedule a follow-up on a deal."""
     return services.schedule_followup(_conn, args)
+
+
+@app.post("/update_followup", operation_id="update_followup")
+async def update_followup(args: UpdateFollowupArgs):
+    """Update a follow-up's status (e.g. mark done), due date, and/or note."""
+    return services.update_followup(_conn, args)
 
 
 mcp = FastApiMCP(app)

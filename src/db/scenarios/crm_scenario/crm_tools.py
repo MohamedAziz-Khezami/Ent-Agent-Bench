@@ -149,12 +149,14 @@ def create_lead(conn, contact_id, source, score=None, rep_id=None) -> dict:
     return _one(conn, "leads", cur.lastrowid)
 
 
-def update_lead(conn, id, status=None, score=None) -> dict:  # noqa: A002
+def update_lead(conn, id, status=None, score=None, source=None) -> dict:  # noqa: A002
     _one(conn, "leads", id)
     if status is not None:
         conn.execute("UPDATE leads SET status=? WHERE id=?", (status, id))
     if score is not None:
         conn.execute("UPDATE leads SET score=? WHERE id=?", (score, id))
+    if source is not None:
+        conn.execute("UPDATE leads SET source=? WHERE id=?", (source, id))
     conn.commit()
     return _one(conn, "leads", id)
 
@@ -212,5 +214,17 @@ def schedule_followup(conn, deal_id, due_date, note=None) -> dict:
         (deal_id, due_date, note, "open", deal["rep_id"]))
     conn.commit()
     return _one(conn, "followups", cur.lastrowid)
+
+
+def update_followup(conn, id, status=None, due_date=None, note=None) -> dict:  # noqa: A002
+    _one(conn, "followups", id)
+    if status is not None:
+        conn.execute("UPDATE followups SET status=? WHERE id=?", (status, id))
+    if due_date is not None:
+        conn.execute("UPDATE followups SET due_date=? WHERE id=?", (due_date, id))
+    if note is not None:
+        conn.execute("UPDATE followups SET note=? WHERE id=?", (note, id))
+    conn.commit()
+    return _one(conn, "followups", id)
 
 

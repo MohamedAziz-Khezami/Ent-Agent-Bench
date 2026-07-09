@@ -103,6 +103,7 @@ class UpdateLeadArgs(BaseModel):
     id: int
     status: Optional[LeadStatus] = None
     score: Optional[int] = None
+    source: Optional[LeadSource] = None
 
 
 class CreateDealArgs(BaseModel):
@@ -138,4 +139,13 @@ class ScheduleFollowupArgs(BaseModel):
 
     deal_id: int
     due_date: str
+    note: Optional[str] = None
+
+
+class UpdateFollowupArgs(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: int
+    status: Optional[FollowupStatus] = None
+    due_date: Optional[str] = None
     note: Optional[str] = None

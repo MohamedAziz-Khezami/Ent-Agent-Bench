@@ -184,13 +184,14 @@
       "type": "function",
       "function": {
         "name": "update_lead",
-        "description": "Update a lead's status and/or score.",
+        "description": "Update a lead's status, score, and/or source.",
         "parameters": {
           "type": "object",
           "properties": {
             "id": {"type": "integer"},
             "status": {"type": "string", "enum": ["new", "qualified", "unqualified", "converted"]},
-            "score": {"type": "integer"}
+            "score": {"type": "integer"},
+            "source": {"type": "string", "enum": ["webform", "referral", "event", "cold_call", "inbound_email"]}
           },
           "required": ["id"]
         }
@@ -261,6 +262,23 @@
             "note": {"type": "string"}
           },
           "required": ["deal_id", "due_date"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "update_followup",
+        "description": "Update a follow-up's status (e.g. mark done), due date, and/or note.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "id": {"type": "integer"},
+            "status": {"type": "string", "enum": ["open", "done"]},
+            "due_date": {"type": "string"},
+            "note": {"type": "string"}
+          },
+          "required": ["id"]
         }
       }
     }

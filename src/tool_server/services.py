@@ -143,3 +143,11 @@ def schedule_followup(conn, args) -> dict:
         return {"ok": True, "result": result}
     except DomainError as e:
         return {"ok": False, "error": {"code": e.code, "message": e.message, **e.extra}}
+
+
+def update_followup(conn, args) -> dict:
+    try:
+        result = impl.update_followup(conn, **args.model_dump(exclude_none=True))
+        return {"ok": True, "result": result}
+    except DomainError as e:
+        return {"ok": False, "error": {"code": e.code, "message": e.message, **e.extra}}

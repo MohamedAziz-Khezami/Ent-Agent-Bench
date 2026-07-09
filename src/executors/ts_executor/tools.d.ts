@@ -243,17 +243,18 @@ interface ToolsInterface {
 
   /**
    * tools.update_lead({id: 12, status: "qualified", score: null})
-   * Update a lead's status and/or score. Only the fields you pass are changed.
+   * Update a lead's status, score, and/or source. Only the fields you pass are changed.
    *
    * Arguments:
    *   id (number)     — required — the lead's id
    *   status (string) — optional — one of: "new", "qualified", "unqualified", "converted"
    *   score (number)  — optional
+   *   source (string) — optional — one of: "webform", "referral", "event", "cold_call", "inbound_email"
    *
    * Returns: the updated lead, shaped like:
    * {"id": 12, "contact_id": 7, "source": "referral", "score": 72, "status": "qualified", "rep_id": 6, "created_at": "2026-01-20"}
    */
-  update_lead(args: { id: number; status?: "new" | "qualified" | "unqualified" | "converted"; score?: number }): Promise<Lead>;
+  update_lead(args: { id: number; status?: "new" | "qualified" | "unqualified" | "converted"; score?: number; source?: "webform" | "referral" | "event" | "cold_call" | "inbound_email" }): Promise<Lead>;
 
   /**
    * tools.create_deal({lead_id: 12, name: "Acme rollout", value: 45000, stage: "prospecting", close_date: null})
@@ -316,5 +317,20 @@ interface ToolsInterface {
    * {"id": 9, "deal_id": 4, "due_date": "2026-06-04", "note": "confirm terms", "status": "open", "rep_id": 3}
    */
   schedule_followup(args: { deal_id: number; due_date: string; note?: string }): Promise<Followup>;
+
+  /**
+   * tools.update_followup({id: 9, status: "done"})
+   * Update a follow-up's status (e.g. mark done), due date, and/or note.
+   *
+   * Arguments:
+   *   id (number)        — required
+   *   status (string)    — optional — one of: "open", "done"
+   *   due_date (string)  — optional — "YYYY-MM-DD"
+   *   note (string)      — optional
+   *
+   * Returns: the updated follow-up, shaped like:
+   * {"id": 9, "deal_id": 4, "due_date": "2026-06-04", "note": "confirm terms", "status": "done", "rep_id": 3}
+   */
+  update_followup(args: { id: number; status?: "open" | "done"; due_date?: string; note?: string }): Promise<Followup>;
 }
 declare const tools: ToolsInterface;

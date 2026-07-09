@@ -153,12 +153,13 @@ Returns: the newly created lead, shaped like:
 
 
 tools.update_lead(id=12, status="qualified", score=None)
-Update a lead's status and/or score. Only the fields you pass are changed.
+Update a lead's status, score, and/or source. Only the fields you pass are changed.
 
 Arguments:
   id (int)      — required — the lead's id
   status (str)  — optional — one of: "new", "qualified", "unqualified", "converted"
   score (int)   — optional
+  source (str)  — optional — one of: "webform", "referral", "event", "cold_call", "inbound_email"
 
 Returns: the updated lead, shaped like:
 {"id": 12, "contact_id": 7, "source": "referral", "score": 72, "status": "qualified", "rep_id": 6, "created_at": "2026-01-20"}
@@ -216,3 +217,16 @@ Arguments:
 
 Returns: the newly created follow-up, shaped like:
 {"id": 9, "deal_id": 4, "due_date": "2026-06-04", "note": "confirm terms", "status": "open", "rep_id": 3}
+
+
+tools.update_followup(id=9, status="done")
+Update a follow-up's status (e.g. mark done), due date, and/or note.
+
+Arguments:
+  id (int)       — required
+  status (str)   — optional — one of: "open", "done"
+  due_date (str) — optional — "YYYY-MM-DD"
+  note (str)     — optional
+
+Returns: the updated follow-up, shaped like:
+{"id": 9, "deal_id": 4, "due_date": "2026-06-04", "note": "confirm terms", "status": "done", "rep_id": 3}
