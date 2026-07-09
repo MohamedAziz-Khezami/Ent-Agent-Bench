@@ -6,6 +6,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from src.db.scenarios.crm_scenario.crm_db import SIM_TODAY
+
 _TOOLS_JSON = json.loads((Path(__file__).parent / "tools.json").read_text())
 
 # Each code-mode surface gets its OWN hand-written tool reference, in that
@@ -51,9 +53,13 @@ def build_tools_param(surface: str, interaction_mode: str, task: dict) -> list[d
 def build_system_prompt(surface: str, interaction_mode: str, task: dict) -> str:
     answer_keys = ", ".join(task["answer_keys"])
 
+    today_line = f"Today's date is {SIM_TODAY}."
+
     if surface == "json_mcp":
         return (
-            "You are solving a CRM task. Use the provided tools to look up and "
+            "You are solving a CRM task. "
+            f"{today_line} "
+            "Use the provided tools to look up and "
             "modify data as needed. When you have the answer, call final_answer "
             f"with these fields: {answer_keys}."
         )
@@ -62,7 +68,8 @@ def build_system_prompt(surface: str, interaction_mode: str, task: dict) -> str:
 
     if interaction_mode == "tool_call":
         return (
-            f"You solve CRM tasks by writing {surface} code. Call the `execute` "
+            f"You solve CRM tasks by writing {surface} code. {today_line} "
+            f"Call the `execute` "
             f"tool with your code and lang='{surface}' to run it — always use "
             f"lang='{surface}', never any other value. Inside your code, a `tools` "
             "object is available with one method per CRM tool. Its available "
@@ -74,7 +81,7 @@ def build_system_prompt(surface: str, interaction_mode: str, task: dict) -> str:
     # text_block
     return (
         f"You solve CRM tasks by writing {surface} code in a fenced "
-        f"```{surface} block. Inside your code, a `tools` object is available "
+        f"```{surface} block. {today_line} Inside your code, a `tools` object is available "
         f"with one method per CRM tool. Its available methods:\n\n{tools_doc}\n\n"
         "When you have solved the task, write the marker FINAL_ANSWER followed "
         "by a ```json code block containing an object with these exact keys: "
