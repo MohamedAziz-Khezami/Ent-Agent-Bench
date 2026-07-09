@@ -50,7 +50,7 @@ models:
 
   - name: qwen3-8b-instruct-llamacpp-local
     backend: openai_compatible
-    model_id: Qwen/Qwen3-8B-GGUF:Qwen3-8B-f16.gguf
+    model_id: bartowski/Qwen_Qwen3-8B-GGUF:Qwen_Qwen3-8B-bf16.gguf  # confirmed — the official Qwen/Qwen3-8B-GGUF repo only ships quantized files, no unquantized option at all
     base_url: http://localhost:8080/v1
     api_key_env: null
     supports_tool_calling: true
