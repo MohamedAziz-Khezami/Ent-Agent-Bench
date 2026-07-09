@@ -156,7 +156,14 @@ def run_episode(model_config, surface: str, interaction_mode: str, task: dict, r
                     break
                 code = _extract_code_fence(resp.content, surface)
                 if code is None:
-                    continue  # model just talked (reasoning) with no code and no final answer
+                    # same alternation risk as the structured branch above:
+                    # looping straight back to complete() with no new turn in
+                    # between would eventually hand the server two trailing
+                    # assistant messages if the model keeps just talking.
+                    messages.append({"role": "user",
+                                      "content": f"Write a ```{surface}``` code block to make progress, "
+                                                  "or write FINAL_ANSWER if you already have the answer."})
+                    continue
                 t0 = time.monotonic()
                 exec_result = episode.exec(code, surface)
                 exec_latency = time.monotonic() - t0
@@ -168,7 +175,17 @@ def run_episode(model_config, surface: str, interaction_mode: str, task: dict, r
 
             # structured: tool_call (code-mode) or json_mcp
             if not resp.tool_calls:
+                # A bare assistant reply with no tool call and nothing appended
+                # after it would leave two assistant messages back-to-back the
+                # next time this loop calls complete() with the same history —
+                # most OpenAI-compatible servers (llama.cpp included) reject
+                # that as invalid (no assistant/assistant repeats allowed).
+                # Nudge with a user turn so alternation stays valid and the
+                # model has a concrete next step instead of drifting.
                 messages.append({"role": "assistant", "content": resp.content})
+                messages.append({"role": "user",
+                                  "content": "Call a tool to make progress, or call final_answer "
+                                              "if you already have the answer."})
                 continue
 
             messages.append({"role": "assistant", "content": resp.content or "",
