@@ -71,7 +71,7 @@ models:
 
   - name: gemma4-12b-llamacpp-local
     backend: openai_compatible
-    model_id: unsloth/gemma-4-12b-it-GGUF:gemma-4-12b-it-F16.gguf
+    model_id: unsloth/gemma-4-12b-it-GGUF:gemma-4-12b-it-BF16.gguf  # confirmed — unsloth repos ship BF16, not F16, as the unquantized file
     base_url: http://localhost:8083/v1
     api_key_env: null
     supports_tool_calling: true
@@ -95,14 +95,14 @@ models:
 
   - name: gemma4-26b-a4b-llamacpp-local
     backend: openai_compatible
-    model_id: unsloth/gemma-4-26B-A4B-it-GGUF:gemma-4-26B-A4B-it-F16.gguf
+    model_id: unsloth/gemma-4-26B-A4B-it-GGUF:gemma-4-26B-A4B-it-BF16.gguf  # unconfirmed — same unsloth F16->BF16 naming pattern seen on gemma-4-12b, verify filename before a real run
     base_url: http://localhost:8086/v1
     api_key_env: null
     supports_tool_calling: true
 
   - name: qwen3-coder-30b-a3b-llamacpp-local
     backend: openai_compatible
-    model_id: unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Qwen3-Coder-30B-A3B-Instruct-F16.gguf
+    model_id: unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Qwen3-Coder-30B-A3B-Instruct-BF16.gguf  # unconfirmed — same unsloth F16->BF16 naming pattern seen on gemma-4-12b, verify filename before a real run
     base_url: http://localhost:8087/v1
     api_key_env: null
     supports_tool_calling: true  # see header note — uses XML tool tags, verify before trusting
