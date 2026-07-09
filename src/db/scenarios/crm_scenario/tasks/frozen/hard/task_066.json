@@ -1,0 +1,73 @@
+{
+  "query": "Following up from this morning's pipeline review: the prospecting deal with Tyrell came up again. schedule a follow-up for 2026-06-06 with the note 'confirm terms', then log a meeting about 'pricing' on it, then move it to the closing stage. Include the deal_id in your reply.",
+  "answer_keys": [
+    "deal_id"
+  ],
+  "ground_truth": {
+    "deal_id": 35
+  },
+  "expected_added": {
+    "followups": [
+      {
+        "deal_id": 35,
+        "due_date": "2026-06-06"
+      }
+    ],
+    "activities": [
+      {
+        "deal_id": 35,
+        "type": "meeting",
+        "subject": "pricing"
+      }
+    ]
+  },
+  "expected_changed": {
+    "deals": [
+      {
+        "id": 35,
+        "fields": {
+          "stage": "closing"
+        }
+      }
+    ]
+  },
+  "exact_added_count": {
+    "followups": 1,
+    "activities": 1
+  },
+  "forbidden": {
+    "reps": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "contacts": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "leads": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "deals": [
+      "added",
+      "removed"
+    ],
+    "activities": [
+      "changed",
+      "removed"
+    ],
+    "followups": [
+      "changed",
+      "removed"
+    ]
+  },
+  "n_functions": 4,
+  "n_actions": 3,
+  "task_id": "task_066",
+  "world_seed": 1066,
+  "difficulty": "hard",
+  "template": "act_on_a_deal"
+}

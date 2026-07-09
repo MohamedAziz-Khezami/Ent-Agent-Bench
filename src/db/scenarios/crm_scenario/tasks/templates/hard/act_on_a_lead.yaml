@@ -1,0 +1,56 @@
+# ──────────────────────────────────────────────────────────────────────
+# TASK TYPE: act_on_a_lead   (hard tier — 3 chained actions, 2 distractors)
+#
+# WHAT THE MODEL IS ASKED (example):
+#   "Ugh, the new lead from Dana Diaz again. Just correct its source to
+#    event, then set its score to 92, then mark it as unqualified so we
+#    can move on. lead_id please."
+#
+# WHAT IT TESTS:
+#   The full lead action menu chained (3 actions), with TWO non-new leads
+#   from the same contact as distractors.
+#
+# HOW IT'S MADE VALID:
+#   Contact name reserved. No-op-proof by disjoint pools: status new vs
+#   qualified/unqualified; score 5-55 vs 60-95; source webform/cold_call
+#   vs referral/event/inbound_email.
+# ──────────────────────────────────────────────────────────────────────
+name: act_on_a_lead
+answer_keys: [lead_id]
+n_functions: 4      # 1 lookup + 3 actions
+n_actions: 3
+
+# ── 1. dice rolls ────────────────────────────────────────────────────────
+params:
+  company: {draw: company}
+  contact_name: {draw: person_name}
+  chosen: {sample: lead_actions, k: 3}
+  new_status: {choice: [qualified, unqualified]}
+  new_score: {randint: [60, 95]}
+  new_source: {choice: [referral, event, inbound_email]}
+
+# ── 2. rows planted into the world ─────────────────────────────────────
+kernel:
+  - {ref: the_contact, table: contacts, row: {name: "{contact_name}", company: "{company}"}}
+  - {ref: the_lead, table: leads,
+     row: {contact_id: "@the_contact", status: new,
+           source: {choice: [webform, cold_call]}, score: {randint: [5, 55]}}}
+
+# two other leads from the SAME contact, in non-new statuses
+distractors:
+  - {ref: d_lead, table: leads, repeat: 2,
+     row: {contact_id: "@the_contact", status: {choice: [qualified, converted]}}}
+
+# ── 3. what a correct solution must have changed ───────────────────────
+effects:
+  from_chosen_actions: {anchor: "@the_lead"}
+
+# ── 4. the correct answer ──────────────────────────────────────────────
+answer: {lead_id: "@the_lead"}
+
+# ── 5. how the query is phrased ─────────────────────────────────────────
+entity: "new lead from {contact_name}"
+phrasings:
+  - "We're behind on the {entity} and the quarter is closing — {actions}, and don't touch anything else. Send me the {answer_key} when done."
+  - "Following up from this morning's pipeline review: the {entity} came up again. {actions}. Include the {answer_key} in your reply."
+  - "Ugh, the {entity} again. Just {actions} so we can move on. {answer_key} please."

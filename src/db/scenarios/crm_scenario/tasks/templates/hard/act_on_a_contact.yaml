@@ -1,0 +1,59 @@
+# ──────────────────────────────────────────────────────────────────────
+# TASK TYPE: act_on_a_contact   (hard tier — 3 chained actions, 2 distractors)
+#
+# WHAT THE MODEL IS ASKED (example):
+#   "Following up from this morning's pipeline review: the contact Quinn
+#    Okafor at Cyberdyne came up again. update their phone number to
+#    +1-555-9132, then log a note saying 'confirm terms' for them, then
+#    log a meeting about 'pricing' with them. Include the contact_id in
+#    your reply."
+#
+# WHAT IT TESTS:
+#   Pure name+company disambiguation — TWO other contacts at the same
+#   company (with different, auto-generated names) — plus the full
+#   contact action menu chained.
+#
+# HOW IT'S MADE VALID:
+#   The anchor's name is reserved (distractor colleagues are guaranteed
+#   different names). No-op-proof: planted phone suffix 1000-4999 vs new
+#   phone suffix 5000-9999.
+# ──────────────────────────────────────────────────────────────────────
+name: act_on_a_contact
+answer_keys: [contact_id]
+n_functions: 4      # 1 lookup + 3 actions
+n_actions: 3
+
+# ── 1. dice rolls ────────────────────────────────────────────────────────
+params:
+  company: {draw: company}
+  contact_name: {draw: person_name}
+  phone_suffix: {randint: [1000, 4999]}
+  chosen: {sample: contact_actions, k: 3}
+  new_phone_suffix: {randint: [5000, 9999]}
+  new_phone: "+1-555-{new_phone_suffix}"
+  atype: {choice: [call, email, meeting]}
+  subject: {choice: [pricing, contract, renewal, kickoff]}
+  note: {choice: [confirm terms, send recap, check budget]}
+
+# ── 2. rows planted into the world ─────────────────────────────────────
+kernel:
+  - {ref: the_contact, table: contacts,
+     row: {name: "{contact_name}", company: "{company}", phone: "+1-555-{phone_suffix}"}}
+
+# two colleagues at the SAME company (names auto-filled, never the anchor's)
+distractors:
+  - {ref: d_contact, table: contacts, repeat: 2, row: {company: "{company}"}}
+
+# ── 3. what a correct solution must have changed ───────────────────────
+effects:
+  from_chosen_actions: {anchor: "@the_contact"}
+
+# ── 4. the correct answer ──────────────────────────────────────────────
+answer: {contact_id: "@the_contact"}
+
+# ── 5. how the query is phrased ─────────────────────────────────────────
+entity: "contact {contact_name} at {company}"
+phrasings:
+  - "We're behind on the {entity} and the quarter is closing — {actions}, and don't touch anything else. Send me the {answer_key} when done."
+  - "Following up from this morning's pipeline review: the {entity} came up again. {actions}. Include the {answer_key} in your reply."
+  - "Ugh, the {entity} again. Just {actions} so we can move on. {answer_key} please."

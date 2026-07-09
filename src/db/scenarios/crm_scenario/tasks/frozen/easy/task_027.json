@@ -1,0 +1,58 @@
+{
+  "query": "Quick task: for the proposal deal with Wayne, schedule a follow-up for 2026-06-04 with the note 'confirm terms'. Answer with deal_id.",
+  "answer_keys": [
+    "deal_id"
+  ],
+  "ground_truth": {
+    "deal_id": 24
+  },
+  "expected_added": {
+    "followups": [
+      {
+        "deal_id": 24,
+        "due_date": "2026-06-04"
+      }
+    ]
+  },
+  "expected_changed": {},
+  "exact_added_count": {
+    "followups": 1
+  },
+  "forbidden": {
+    "reps": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "contacts": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "leads": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "deals": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "activities": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "followups": [
+      "changed",
+      "removed"
+    ]
+  },
+  "n_functions": 2,
+  "n_actions": 1,
+  "task_id": "task_027",
+  "world_seed": 1027,
+  "difficulty": "easy",
+  "template": "act_on_a_deal"
+}

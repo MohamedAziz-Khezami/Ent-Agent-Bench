@@ -1,0 +1,53 @@
+# ──────────────────────────────────────────────────────────────────────
+# TASK TYPE: act_on_a_deal   (easy tier — 1 action, no distractors)
+#
+# WHAT THE MODEL IS ASKED (example):
+#   "Quick task: for the qualification deal with Wonka, log a call about
+#    'pricing' on it. Answer with deal_id."
+#
+# WHAT IT TESTS:
+#   The basics — find ONE deal by its description (stage + company), do
+#   exactly one stated action on it, report its id.
+#
+# HOW IT'S MADE VALID:
+#   The company is reserved for this task (background noise can never use
+#   it), so "the {stage} deal with {company}" matches exactly one row.
+#   The move-stage action targets negotiation/closing while the anchor is
+#   always in prospecting/qualification/proposal — a no-op is impossible.
+# ──────────────────────────────────────────────────────────────────────
+name: act_on_a_deal
+answer_keys: [deal_id]
+n_functions: 2      # 1 lookup + 1 action
+n_actions: 1
+
+# ── 1. dice rolls (top to bottom; later entries may use earlier ones) ──
+params:
+  company: {draw: company}
+  contact_name: {draw: person_name}
+  stage: {choice: [prospecting, qualification, proposal]}
+  chosen: {sample: deal_actions, k: 1}
+  atype: {choice: [call, email, meeting]}
+  subject: {choice: [pricing, contract, renewal, kickoff]}
+  note: {choice: [confirm terms, send recap, check budget]}
+  due: {sim_date_offset: {choice: [3, 5, 7, 10]}}
+  new_stage: {choice: [negotiation, closing]}
+
+# ── 2. rows planted into the world ─────────────────────────────────────
+kernel:
+  - {ref: the_contact, table: contacts, row: {name: "{contact_name}", company: "{company}"}}
+  - {ref: the_lead, table: leads, row: {contact_id: "@the_contact"}}
+  - {ref: the_deal, table: deals, row: {lead_id: "@the_lead", stage: "{stage}"}}
+
+# ── 3. what a correct solution must have changed ───────────────────────
+effects:
+  from_chosen_actions: {anchor: "@the_deal"}
+
+# ── 4. the correct answer ──────────────────────────────────────────────
+answer: {deal_id: "@the_deal"}
+
+# ── 5. how the query is phrased (one picked at random) ─────────────────
+entity: "{stage} deal with {company}"
+phrasings:
+  - "Our {entity} needs attention: {actions}. Give me the id as {answer_key}."
+  - "Please {actions} on the {entity}. Report the {answer_key}."
+  - "Quick task: for the {entity}, {actions}. Answer with {answer_key}."

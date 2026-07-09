@@ -1,0 +1,73 @@
+{
+  "query": "Following up from this morning's pipeline review: the prospecting deal with Initech came up again. log a email about 'pricing' on it, then move it to the negotiation stage, then schedule a follow-up for 2026-06-08 with the note 'confirm terms'. Include the deal_id in your reply.",
+  "answer_keys": [
+    "deal_id"
+  ],
+  "ground_truth": {
+    "deal_id": 7
+  },
+  "expected_added": {
+    "activities": [
+      {
+        "deal_id": 7,
+        "type": "email",
+        "subject": "pricing"
+      }
+    ],
+    "followups": [
+      {
+        "deal_id": 7,
+        "due_date": "2026-06-08"
+      }
+    ]
+  },
+  "expected_changed": {
+    "deals": [
+      {
+        "id": 7,
+        "fields": {
+          "stage": "negotiation"
+        }
+      }
+    ]
+  },
+  "exact_added_count": {
+    "activities": 1,
+    "followups": 1
+  },
+  "forbidden": {
+    "reps": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "contacts": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "leads": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "deals": [
+      "added",
+      "removed"
+    ],
+    "activities": [
+      "changed",
+      "removed"
+    ],
+    "followups": [
+      "changed",
+      "removed"
+    ]
+  },
+  "n_functions": 4,
+  "n_actions": 3,
+  "task_id": "task_081",
+  "world_seed": 1081,
+  "difficulty": "hard",
+  "template": "act_on_a_deal"
+}

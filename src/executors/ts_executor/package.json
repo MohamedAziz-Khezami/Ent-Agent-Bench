@@ -1,0 +1,8 @@
+{
+  "name": "ent-agent-bench-ts-executor",
+  "private": true,
+  "description": "TS code-mode execution container for the benchmark harness, with real semantic type-checking.",
+  "dependencies": {
+    "typescript": "^5.6.3"
+  }
+}

@@ -1,0 +1,181 @@
+# meter.py — per-episode metrics collection. The (not-yet-built) agent loop
+# creates one EpisodeMeter per episode and calls its record_*/mark_* methods
+# as things happen (a model turn, a tool exec call, a parse failure), then
+# calls finalize(verify_result) once at the end to get one CSV row's worth
+# of data. No model, no Docker, no live episode needed to test this file —
+# record_* takes plain dicts/numbers, so it's fully unit testable.
+from __future__ import annotations
+
+import time
+
+# DomainError codes raised by src/core/errors.py (see impl.py/services.py) —
+# these reached the tool-server, got processed, and were legitimately
+# rejected, so they count as tool errors regardless of which surface made
+# the call.
+_DOMAIN_ERROR_CODES = {"not_found", "duplicate_key", "malformed_filter"}
+
+# Exception class names indicating the call reached (or tried to reach) the
+# tool-server but failed at the transport/HTTP level rather than inside the
+# model's own code — e.g. requests.raise_for_status() raising HTTPError for
+# a non-2xx response. Observed empirically against the Python executor;
+# JS/TS transport failures haven't been exercised yet and may need adding
+# here once the agent loop generates real traffic.
+_TRANSPORT_ERROR_NAMES = {"HTTPError", "ConnectionError", "Timeout"}
+
+
+def _categorize_error(error: dict) -> str:
+    """Returns one of 'syntax', 'type', 'tool', 'runtime'."""
+    code = error.get("code")
+    name = error.get("name")
+    if code == "ts_syntax_error":
+        return "syntax"
+    if code == "ts_type_error":
+        return "type"
+    if code in _DOMAIN_ERROR_CODES:
+        return "tool"
+    if name == "SyntaxError":
+        return "syntax"
+    if name in _TRANSPORT_ERROR_NAMES:
+        return "tool"
+    return "runtime"
+
+
+class EpisodeMeter:
+    def __init__(self, episode_id: str, model: str, surface: str, interaction_mode: str,
+                 task_id: str, difficulty: str, world_seed: int, n_functions_expected: int):
+        self.episode_id = episode_id
+        self.model = model
+        self.surface = surface
+        self.interaction_mode = interaction_mode
+        self.task_id = task_id
+        self.difficulty = difficulty
+        self.world_seed = world_seed
+        self.n_functions_expected = n_functions_expected
+
+        self._start = time.monotonic()
+
+        self.model_turns = 0
+        self.model_latency_seconds = 0.0
+        self.input_tokens = 0
+        self.output_tokens = 0
+
+        self.tool_calls_made = 0
+        self.execution_latency_seconds = 0.0
+
+        self.tool_error_count = 0
+        self.syntax_error_count = 0
+        self.type_error_count = 0
+        self.runtime_error_count = 0
+        self.parse_error_count = 0
+
+        self.hit_turn_budget = 0
+        self.infra_error = 0
+        self.model_api_error = 0
+        self.model_api_error_message = ""
+        self.episode_error = 0
+        self.episode_error_message = ""
+
+    def record_model_turn(self, latency_seconds: float, input_tokens: int, output_tokens: int) -> None:
+        self.model_turns += 1
+        self.model_latency_seconds += latency_seconds
+        self.input_tokens += input_tokens
+        self.output_tokens += output_tokens
+
+    def record_exec_result(self, exec_result: dict, latency_seconds: float) -> None:
+        """`exec_result` is one episode.exec() response: {ok, stdout, value,
+        error, tool_calls}."""
+        self.tool_calls_made += exec_result.get("tool_calls", 0)
+        self.execution_latency_seconds += latency_seconds
+        error = exec_result.get("error")
+        if error:
+            bucket = _categorize_error(error)
+            if bucket == "syntax":
+                self.syntax_error_count += 1
+            elif bucket == "type":
+                self.type_error_count += 1
+            elif bucket == "tool":
+                self.tool_error_count += 1
+            else:
+                self.runtime_error_count += 1
+
+    def record_parse_error(self) -> None:
+        self.parse_error_count += 1
+
+    def mark_hit_turn_budget(self) -> None:
+        self.hit_turn_budget = 1
+
+    def mark_infra_error(self) -> None:
+        self.infra_error = 1
+
+    def mark_episode_error(self, message: str) -> None:
+        """Anything else inside the turn loop / grading blew up (executor
+        container hung, tool-server network blip, a bug in verify() or
+        state_diff...) — distinct from model_api_error (the model call
+        itself) and infra_error (episode/Docker setup). Last-resort net so
+        NOTHING inside run_episode() can crash the batch run in main.py."""
+        self.episode_error = 1
+        self.episode_error_message = message
+
+    def mark_model_api_error(self, message: str) -> None:
+        """The call to the model itself failed (context-length exceeded,
+        rate limit, malformed request, provider outage...) — distinct from
+        infra_error (episode/Docker setup) and from the exec-time error
+        buckets (the model's own code/tool-call failing). Covers whatever
+        the episode's LAST attempted turn was; earlier successful turns are
+        still counted via model_turns/tokens."""
+        self.model_api_error = 1
+        self.model_api_error_message = message
+
+    def finalize(self, verify_result: dict) -> dict:
+        """`verify_result` is verify()'s output: {passed, reasons, checks}."""
+        total_latency_seconds = time.monotonic() - self._start
+        total_tokens = self.input_tokens + self.output_tokens
+        checks = verify_result.get("checks", {})
+        fulfillment_score = (sum(checks.values()) / len(checks)) if checks else 0.0
+
+        total_errors = (self.tool_error_count + self.syntax_error_count
+                         + self.type_error_count + self.runtime_error_count
+                         + self.parse_error_count)
+        recovered = 1 if (total_errors > 0 and verify_result["passed"]) else 0
+
+        # answer_correct/db_correct: the coarsest 2-bucket grouping of the six
+        # named checks — 'answer' is its own bucket, everything else is 'db'.
+        answer_correct = int(checks.get("answer", False))
+        db_check_names = [n for n in checks if n != "answer"]
+        db_correct = int(all(checks[n] for n in db_check_names)) if db_check_names else 1
+
+        return {
+            "episode_id": self.episode_id,
+            "model": self.model,
+            "surface": self.surface,
+            "interaction_mode": self.interaction_mode,
+            "task_id": self.task_id,
+            "difficulty": self.difficulty,
+            "world_seed": self.world_seed,
+            "passed": int(verify_result["passed"]),
+            "answer_correct": answer_correct,
+            "db_correct": db_correct,
+            "fulfillment_score": fulfillment_score,
+            "n_functions_expected": self.n_functions_expected,
+            "tool_calls_made": self.tool_calls_made,
+            "model_turns": self.model_turns,
+            "total_latency_seconds": total_latency_seconds,
+            "model_latency_seconds": self.model_latency_seconds,
+            "execution_latency_seconds": self.execution_latency_seconds,
+            "input_tokens": self.input_tokens,
+            "output_tokens": self.output_tokens,
+            "total_tokens": total_tokens,
+            "tool_error_count": self.tool_error_count,
+            "syntax_error_count": self.syntax_error_count,
+            "type_error_count": self.type_error_count,
+            "runtime_error_count": self.runtime_error_count,
+            "parse_error_count": self.parse_error_count,
+            "recovered": recovered,
+            "hit_turn_budget": self.hit_turn_budget,
+            "infra_error": self.infra_error,
+            "model_api_error": self.model_api_error,
+            "model_api_error_message": self.model_api_error_message,
+            "episode_error": self.episode_error,
+            "episode_error_message": self.episode_error_message,
+            "verifier_reasons": "; ".join(verify_result["reasons"]),
+        }

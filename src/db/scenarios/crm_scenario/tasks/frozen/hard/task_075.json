@@ -1,0 +1,72 @@
+{
+  "query": "We're behind on the contact Priya Silva at Initech and the quarter is closing \u2014 log a note saying 'send recap' for them, then log a call about 'renewal' with them, then update their phone number to +1-555-8572, and don't touch anything else. Send me the contact_id when done.",
+  "answer_keys": [
+    "contact_id"
+  ],
+  "ground_truth": {
+    "contact_id": 7
+  },
+  "expected_added": {
+    "activities": [
+      {
+        "contact_id": 7,
+        "type": "note",
+        "subject": "send recap"
+      },
+      {
+        "contact_id": 7,
+        "type": "call",
+        "subject": "renewal"
+      }
+    ]
+  },
+  "expected_changed": {
+    "contacts": [
+      {
+        "id": 7,
+        "fields": {
+          "phone": "+1-555-8572"
+        }
+      }
+    ]
+  },
+  "exact_added_count": {
+    "activities": 2
+  },
+  "forbidden": {
+    "reps": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "contacts": [
+      "added",
+      "removed"
+    ],
+    "leads": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "deals": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "activities": [
+      "changed",
+      "removed"
+    ],
+    "followups": [
+      "added",
+      "changed",
+      "removed"
+    ]
+  },
+  "n_functions": 4,
+  "n_actions": 3,
+  "task_id": "task_075",
+  "world_seed": 1075,
+  "difficulty": "hard",
+  "template": "act_on_a_contact"
+}

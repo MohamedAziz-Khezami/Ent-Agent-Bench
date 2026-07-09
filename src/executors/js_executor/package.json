@@ -1,0 +1,8 @@
+{
+  "name": "ent-agent-bench-js-executor",
+  "private": true,
+  "description": "JS code-mode execution container for the benchmark harness.",
+  "dependencies": {
+    "acorn": "^8.14.0"
+  }
+}

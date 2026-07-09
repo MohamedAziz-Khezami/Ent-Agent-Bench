@@ -1,0 +1,59 @@
+{
+  "query": "Quick task: for the qualification deal with Stark, log a email about 'pricing' on it. Answer with deal_id.",
+  "answer_keys": [
+    "deal_id"
+  ],
+  "ground_truth": {
+    "deal_id": 26
+  },
+  "expected_added": {
+    "activities": [
+      {
+        "deal_id": 26,
+        "type": "email",
+        "subject": "pricing"
+      }
+    ]
+  },
+  "expected_changed": {},
+  "exact_added_count": {
+    "activities": 1
+  },
+  "forbidden": {
+    "reps": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "contacts": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "leads": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "deals": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "activities": [
+      "changed",
+      "removed"
+    ],
+    "followups": [
+      "added",
+      "changed",
+      "removed"
+    ]
+  },
+  "n_functions": 2,
+  "n_actions": 1,
+  "task_id": "task_018",
+  "world_seed": 1018,
+  "difficulty": "easy",
+  "template": "act_on_a_deal"
+}

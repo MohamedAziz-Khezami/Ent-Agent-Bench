@@ -1,0 +1,51 @@
+# ──────────────────────────────────────────────────────────────────────
+# TASK TYPE: count_open_deals   (easy tier — read-only, no mutations)
+#
+# WHAT THE MODEL IS ASKED (example):
+#   "How many open deals does Grace Silva currently own? Answer with the
+#    count as n_deals."
+#
+# WHAT IT TESTS:
+#   Pure filtered lookup + counting. Any write to the database fails the
+#   task (everything is forbidden for a read-only task).
+#
+# HOW IT'S MADE VALID:
+#   The count is DECIDED first (n_open), then exactly that many open-stage
+#   deals are planted under a reserved rep. Background deals can never
+#   belong to this rep, so the count can't be contaminated. The won/lost
+#   clutter deals keep the rep looking realistic without touching the
+#   answer.
+# ──────────────────────────────────────────────────────────────────────
+name: count_open_deals
+answer_keys: [n_deals]
+n_functions: 2      # 1 lookup + 1 count/answer step
+n_actions: 1
+
+# ── 1. dice rolls ────────────────────────────────────────────────────────
+params:
+  rep_name: {draw: person_name}
+  contact_name: {draw: person_name}
+  company: {draw: company}
+  n_open: {randint: [2, 6]}
+  n_closed: {randint: [1, 3]}
+
+# ── 2. rows planted into the world ─────────────────────────────────────
+kernel:
+  - {ref: the_rep, table: reps, row: {name: "{rep_name}"}}
+  - {ref: the_contact, table: contacts, row: {name: "{contact_name}", company: "{company}"}}
+  - {ref: open_leads, table: leads, repeat: "{n_open}", row: {contact_id: "@the_contact"}}
+  - {ref: open_deals, table: deals, repeat: "{n_open}",
+     row: {lead_id: "@open_leads", rep_id: "@the_rep",
+           stage: {choice: [prospecting, qualification, proposal, negotiation, closing]}}}
+  - {ref: closed_leads, table: leads, repeat: "{n_closed}", row: {contact_id: "@the_contact"}}
+  - {ref: closed_deals, table: deals, repeat: "{n_closed}",
+     row: {lead_id: "@closed_leads", rep_id: "@the_rep", stage: {choice: [won, lost]}}}
+
+# ── 3. what a correct solution must have changed: NOTHING (read-only) ──
+effects: {}
+
+# ── 4. the correct answer ──────────────────────────────────────────────
+answer: {n_deals: "{n_open}"}
+
+# ── 5. the query (fixed form, no phrasing wrapper) ─────────────────────
+query: "How many open deals does {rep_name} currently own? Answer with the count as n_deals."

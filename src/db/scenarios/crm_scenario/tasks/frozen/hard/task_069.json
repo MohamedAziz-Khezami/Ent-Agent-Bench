@@ -1,0 +1,60 @@
+{
+  "query": "We're behind on the new lead from Elif Silva and the quarter is closing \u2014 set its score to 63, then mark it as qualified, then correct its source to inbound_email, and don't touch anything else. Send me the lead_id when done.",
+  "answer_keys": [
+    "lead_id"
+  ],
+  "ground_truth": {
+    "lead_id": 12
+  },
+  "expected_added": {},
+  "expected_changed": {
+    "leads": [
+      {
+        "id": 12,
+        "fields": {
+          "score": 63,
+          "status": "qualified",
+          "source": "inbound_email"
+        }
+      }
+    ]
+  },
+  "exact_added_count": {},
+  "forbidden": {
+    "reps": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "contacts": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "leads": [
+      "added",
+      "removed"
+    ],
+    "deals": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "activities": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "followups": [
+      "added",
+      "changed",
+      "removed"
+    ]
+  },
+  "n_functions": 4,
+  "n_actions": 3,
+  "task_id": "task_069",
+  "world_seed": 1069,
+  "difficulty": "hard",
+  "template": "act_on_a_lead"
+}

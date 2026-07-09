@@ -1,0 +1,66 @@
+{
+  "query": "The qualification deal with Acme has gone quiet \u2014 schedule a follow-up for 2026-06-11 with the note 'confirm terms', then move it to the closing stage. Report deal_id.",
+  "answer_keys": [
+    "deal_id"
+  ],
+  "ground_truth": {
+    "deal_id": 14
+  },
+  "expected_added": {
+    "followups": [
+      {
+        "deal_id": 14,
+        "due_date": "2026-06-11"
+      }
+    ]
+  },
+  "expected_changed": {
+    "deals": [
+      {
+        "id": 14,
+        "fields": {
+          "stage": "closing"
+        }
+      }
+    ]
+  },
+  "exact_added_count": {
+    "followups": 1
+  },
+  "forbidden": {
+    "reps": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "contacts": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "leads": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "deals": [
+      "added",
+      "removed"
+    ],
+    "activities": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "followups": [
+      "changed",
+      "removed"
+    ]
+  },
+  "n_functions": 3,
+  "n_actions": 2,
+  "task_id": "task_039",
+  "world_seed": 1039,
+  "difficulty": "medium",
+  "template": "act_on_a_deal"
+}

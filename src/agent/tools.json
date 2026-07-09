@@ -1,0 +1,283 @@
+{
+  "crm_tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "list_reps",
+        "description": "List every sales rep.",
+        "parameters": {"type": "object", "properties": {}, "required": []}
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "find_contacts",
+        "description": "Search contacts by name, email, company, or rep.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "name": {"type": "string"},
+            "email": {"type": "string"},
+            "company": {"type": "string"},
+            "rep_id": {"type": "integer"}
+          },
+          "required": []
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "get_contact",
+        "description": "Fetch one contact by id.",
+        "parameters": {
+          "type": "object",
+          "properties": {"id": {"type": "integer"}},
+          "required": ["id"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "find_leads",
+        "description": "Search leads by contact, rep, status, or minimum score.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "contact_id": {"type": "integer"},
+            "rep_id": {"type": "integer"},
+            "status": {"type": "string", "enum": ["new", "qualified", "unqualified", "converted"]},
+            "min_score": {"type": "integer"}
+          },
+          "required": []
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "get_lead",
+        "description": "Fetch one lead by id.",
+        "parameters": {
+          "type": "object",
+          "properties": {"id": {"type": "integer"}},
+          "required": ["id"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "get_deal",
+        "description": "Fetch one deal by id.",
+        "parameters": {
+          "type": "object",
+          "properties": {"id": {"type": "integer"}},
+          "required": ["id"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "find_deals",
+        "description": "Search deals by lead, stage, rep, or minimum value.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "lead_id": {"type": "integer"},
+            "stage": {"type": "string", "enum": ["prospecting", "qualification", "proposal", "negotiation", "closing", "won", "lost"]},
+            "rep_id": {"type": "integer"},
+            "min_value": {"type": "number"}
+          },
+          "required": []
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "get_activities",
+        "description": "List activities for a deal or a contact (one of the two is required).",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "deal_id": {"type": "integer"},
+            "contact_id": {"type": "integer"}
+          },
+          "required": []
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "get_followups",
+        "description": "Search follow-ups by deal, rep, or status.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "deal_id": {"type": "integer"},
+            "rep_id": {"type": "integer"},
+            "status": {"type": "string", "enum": ["open", "done"]}
+          },
+          "required": []
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "create_contact",
+        "description": "Create a new contact; fails if the email already exists.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "name": {"type": "string"},
+            "email": {"type": "string"},
+            "rep_id": {"type": "integer"},
+            "company": {"type": "string"},
+            "phone": {"type": "string"}
+          },
+          "required": ["name", "email", "rep_id"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "update_contact",
+        "description": "Update one or more fields on an existing contact.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "id": {"type": "integer"},
+            "name": {"type": "string"},
+            "email": {"type": "string"},
+            "company": {"type": "string"},
+            "phone": {"type": "string"},
+            "rep_id": {"type": "integer"}
+          },
+          "required": ["id"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "create_lead",
+        "description": "Create a new lead for a contact.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "contact_id": {"type": "integer"},
+            "source": {"type": "string", "enum": ["webform", "referral", "event", "cold_call", "inbound_email"]},
+            "score": {"type": "integer"},
+            "rep_id": {"type": "integer"}
+          },
+          "required": ["contact_id", "source"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "update_lead",
+        "description": "Update a lead's status and/or score.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "id": {"type": "integer"},
+            "status": {"type": "string", "enum": ["new", "qualified", "unqualified", "converted"]},
+            "score": {"type": "integer"}
+          },
+          "required": ["id"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "create_deal",
+        "description": "Create a new deal under a lead.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "lead_id": {"type": "integer"},
+            "name": {"type": "string"},
+            "value": {"type": "number"},
+            "stage": {"type": "string", "enum": ["prospecting", "qualification", "proposal", "negotiation", "closing", "won", "lost"]},
+            "close_date": {"type": "string"}
+          },
+          "required": ["lead_id", "name", "value"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "update_deal",
+        "description": "Update a deal's stage, value, and/or close date.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "id": {"type": "integer"},
+            "stage": {"type": "string", "enum": ["prospecting", "qualification", "proposal", "negotiation", "closing", "won", "lost"]},
+            "value": {"type": "number"},
+            "close_date": {"type": "string"}
+          },
+          "required": ["id"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "log_activity",
+        "description": "Log a call, email, meeting, or note on a deal or contact. If only deal_id is given, contact_id is filled in automatically from the deal's contact.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "type": {"type": "string", "enum": ["call", "email", "meeting", "note"]},
+            "subject": {"type": "string"},
+            "deal_id": {"type": "integer"},
+            "contact_id": {"type": "integer"}
+          },
+          "required": ["type", "subject"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "schedule_followup",
+        "description": "Schedule a follow-up on a deal.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "deal_id": {"type": "integer"},
+            "due_date": {"type": "string"},
+            "note": {"type": "string"}
+          },
+          "required": ["deal_id", "due_date"]
+        }
+      }
+    }
+  ],
+  "execute": {
+    "type": "function",
+    "function": {
+      "name": "execute",
+      "description": "Run a block of code against the CRM tools. `tools` is available in scope with one method per CRM tool.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "code": {"type": "string", "description": "The code to run."},
+          "lang": {"type": "string", "enum": ["python", "js", "ts"]}
+        },
+        "required": ["code", "lang"]
+      }
+    }
+  }
+}

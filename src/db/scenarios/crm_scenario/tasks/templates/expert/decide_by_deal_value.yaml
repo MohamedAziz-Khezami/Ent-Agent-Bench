@@ -1,0 +1,64 @@
+# ──────────────────────────────────────────────────────────────────────
+# TASK TYPE: decide_by_deal_value   (expert tier)
+#
+# WHAT THE MODEL IS ASKED (example):
+#   "Check the proposal deal with Wonka. If its value is over $50,000,
+#    move it to the negotiation stage. Otherwise, log a note saying
+#    'needs review' on it. Report deal_id."
+#
+# WHAT IT TESTS:
+#   Data-dependent branching — the query states BOTH branches; the model
+#   must look up the deal's real value and execute only the right one.
+#   Executing both (or the wrong one) fails via the forbidden contract.
+#
+# HOW IT'S MADE VALID:
+#   The branch is DECIDED first (params.branch), then the deal's value is
+#   constructed safely on that side (>=1.3x above / <=0.7x below the
+#   threshold, on the same 500-step grid the noise uses) — a near-tie can
+#   never be generated, so no margin check is needed.
+# ──────────────────────────────────────────────────────────────────────
+name: decide_by_deal_value
+answer_keys: [deal_id]
+n_functions: 2      # 1 lookup + 1 action (whichever branch is true)
+n_actions: 1
+
+# ── 1. dice rolls (branch first — value is built to make it true) ──────
+params:
+  branch: {choice: [high, low]}
+  threshold: {choice: [30000, 50000, 75000]}
+  value:
+    if:
+      - {when: "branch == 'high'", then: {value_between: ["threshold * 1.3", 120000]}}
+      - {when: "branch == 'low'", then: {value_between: [5000, "threshold * 0.7"]}}
+  company: {draw: company}
+  contact_name: {draw: person_name}
+  note: {choice: [needs review, flagged for follow-up, check with finance]}
+  stage: {choice: [prospecting, qualification, proposal]}
+
+# ── 2. rows planted into the world ─────────────────────────────────────
+kernel:
+  - {ref: the_contact, table: contacts, row: {name: "{contact_name}", company: "{company}"}}
+  - {ref: the_lead, table: leads, row: {contact_id: "@the_contact"}}
+  - {ref: the_deal, table: deals,
+     row: {lead_id: "@the_lead", stage: "{stage}", value: "{value}"}}
+
+# ── 3. what a correct solution must have changed (only the TRUE branch) ─
+effects:
+  if:
+    - when: "branch == 'high'"
+      then:
+        changed:
+          - {table: deals, id: "@the_deal", fields: {stage: negotiation}}
+    - when: "branch == 'low'"
+      then:
+        added:
+          - {table: activities, row: {deal_id: "@the_deal", type: note, subject: "{note}"}}
+
+# ── 4. the correct answer ──────────────────────────────────────────────
+answer: {deal_id: "@the_deal"}
+
+# ── 5. the query (fixed form, states both branches, reveals neither) ───
+query: >-
+  Check the {stage} deal with {company}. If its value is over ${threshold:,},
+  move it to the negotiation stage. Otherwise, log a note saying '{note}' on
+  it. Report deal_id.

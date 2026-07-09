@@ -1,0 +1,60 @@
+{
+  "query": "Following up from this morning's pipeline review: the new lead from Noor Okafor came up again. correct its source to referral, then set its score to 82, then mark it as qualified. Include the lead_id in your reply.",
+  "answer_keys": [
+    "lead_id"
+  ],
+  "ground_truth": {
+    "lead_id": 21
+  },
+  "expected_added": {},
+  "expected_changed": {
+    "leads": [
+      {
+        "id": 21,
+        "fields": {
+          "source": "referral",
+          "score": 82,
+          "status": "qualified"
+        }
+      }
+    ]
+  },
+  "exact_added_count": {},
+  "forbidden": {
+    "reps": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "contacts": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "leads": [
+      "added",
+      "removed"
+    ],
+    "deals": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "activities": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "followups": [
+      "added",
+      "changed",
+      "removed"
+    ]
+  },
+  "n_functions": 4,
+  "n_actions": 3,
+  "task_id": "task_084",
+  "world_seed": 1084,
+  "difficulty": "hard",
+  "template": "act_on_a_lead"
+}

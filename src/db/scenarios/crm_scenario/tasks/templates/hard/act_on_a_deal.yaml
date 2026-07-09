@@ -1,0 +1,60 @@
+# ──────────────────────────────────────────────────────────────────────
+# TASK TYPE: act_on_a_deal   (hard tier — 3 chained actions, 2 distractors)
+#
+# WHAT THE MODEL IS ASKED (example):
+#   "Ugh, the closing deal with Tyrell again. Just log a call about
+#    'contract' on it, then move it to the negotiation stage, then
+#    schedule a follow-up for 2026-06-08 with the note 'check budget' so
+#    we can move on. deal_id please."
+#
+# WHAT IT TESTS:
+#   The full deal action menu chained (3 actions), against TWO lookalike
+#   deals at the same company, wrapped in noisier, moodier phrasing.
+#
+# HOW IT'S MADE VALID:
+#   Company reserved; both distractor deals sit in won/lost so the
+#   anchor's description stays unique. Anchor stages vs move-targets are
+#   disjoint pools — no-op impossible.
+# ──────────────────────────────────────────────────────────────────────
+name: act_on_a_deal
+answer_keys: [deal_id]
+n_functions: 4      # 1 lookup + 3 actions
+n_actions: 3
+
+# ── 1. dice rolls ────────────────────────────────────────────────────────
+params:
+  company: {draw: company}
+  contact_name: {draw: person_name}
+  stage: {choice: [prospecting, qualification, proposal]}
+  chosen: {sample: deal_actions, k: 3}
+  atype: {choice: [call, email, meeting]}
+  subject: {choice: [pricing, contract, renewal, kickoff]}
+  note: {choice: [confirm terms, send recap, check budget]}
+  due: {sim_date_offset: {choice: [3, 5, 7, 10]}}
+  new_stage: {choice: [negotiation, closing]}
+
+# ── 2. rows planted into the world ─────────────────────────────────────
+kernel:
+  - {ref: the_contact, table: contacts, row: {name: "{contact_name}", company: "{company}"}}
+  - {ref: the_lead, table: leads, row: {contact_id: "@the_contact"}}
+  - {ref: the_deal, table: deals, row: {lead_id: "@the_lead", stage: "{stage}"}}
+
+# two lookalikes at the SAME company, both in closed stages
+distractors:
+  - {ref: d_contact, table: contacts, repeat: 2, row: {company: "{company}"}}
+  - {ref: d_lead, table: leads, repeat: 2, row: {contact_id: "@d_contact"}}
+  - {ref: d_deal, table: deals, repeat: 2, row: {lead_id: "@d_lead", stage: {choice: [won, lost]}}}
+
+# ── 3. what a correct solution must have changed ───────────────────────
+effects:
+  from_chosen_actions: {anchor: "@the_deal"}
+
+# ── 4. the correct answer ──────────────────────────────────────────────
+answer: {deal_id: "@the_deal"}
+
+# ── 5. how the query is phrased ─────────────────────────────────────────
+entity: "{stage} deal with {company}"
+phrasings:
+  - "We're behind on the {entity} and the quarter is closing — {actions}, and don't touch anything else. Send me the {answer_key} when done."
+  - "Following up from this morning's pipeline review: the {entity} came up again. {actions}. Include the {answer_key} in your reply."
+  - "Ugh, the {entity} again. Just {actions} so we can move on. {answer_key} please."

@@ -1,0 +1,72 @@
+{
+  "query": "Ugh, the contact Mona Novak at Soylent again. Just log a note saying 'send recap' for them, then update their phone number to +1-555-7064, then log a call about 'pricing' with them so we can move on. contact_id please.",
+  "answer_keys": [
+    "contact_id"
+  ],
+  "ground_truth": {
+    "contact_id": 29
+  },
+  "expected_added": {
+    "activities": [
+      {
+        "contact_id": 29,
+        "type": "note",
+        "subject": "send recap"
+      },
+      {
+        "contact_id": 29,
+        "type": "call",
+        "subject": "pricing"
+      }
+    ]
+  },
+  "expected_changed": {
+    "contacts": [
+      {
+        "id": 29,
+        "fields": {
+          "phone": "+1-555-7064"
+        }
+      }
+    ]
+  },
+  "exact_added_count": {
+    "activities": 2
+  },
+  "forbidden": {
+    "reps": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "contacts": [
+      "added",
+      "removed"
+    ],
+    "leads": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "deals": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "activities": [
+      "changed",
+      "removed"
+    ],
+    "followups": [
+      "added",
+      "changed",
+      "removed"
+    ]
+  },
+  "n_functions": 4,
+  "n_actions": 3,
+  "task_id": "task_065",
+  "world_seed": 1065,
+  "difficulty": "hard",
+  "template": "act_on_a_contact"
+}

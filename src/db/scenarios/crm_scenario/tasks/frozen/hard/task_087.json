@@ -1,0 +1,73 @@
+{
+  "query": "Following up from this morning's pipeline review: the prospecting deal with Vandelay came up again. schedule a follow-up for 2026-06-11 with the note 'send recap', then log a email about 'kickoff' on it, then move it to the negotiation stage. Include the deal_id in your reply.",
+  "answer_keys": [
+    "deal_id"
+  ],
+  "ground_truth": {
+    "deal_id": 17
+  },
+  "expected_added": {
+    "followups": [
+      {
+        "deal_id": 17,
+        "due_date": "2026-06-11"
+      }
+    ],
+    "activities": [
+      {
+        "deal_id": 17,
+        "type": "email",
+        "subject": "kickoff"
+      }
+    ]
+  },
+  "expected_changed": {
+    "deals": [
+      {
+        "id": 17,
+        "fields": {
+          "stage": "negotiation"
+        }
+      }
+    ]
+  },
+  "exact_added_count": {
+    "followups": 1,
+    "activities": 1
+  },
+  "forbidden": {
+    "reps": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "contacts": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "leads": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "deals": [
+      "added",
+      "removed"
+    ],
+    "activities": [
+      "changed",
+      "removed"
+    ],
+    "followups": [
+      "changed",
+      "removed"
+    ]
+  },
+  "n_functions": 4,
+  "n_actions": 3,
+  "task_id": "task_087",
+  "world_seed": 1087,
+  "difficulty": "hard",
+  "template": "act_on_a_deal"
+}

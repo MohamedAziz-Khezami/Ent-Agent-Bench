@@ -1,0 +1,58 @@
+# ──────────────────────────────────────────────────────────────────────
+# TASK TYPE: find_deal_via_chain   (expert tier)
+#
+# WHAT THE MODEL IS ASKED (example):
+#   "Find the contact named Tara Larsen at Hooli. Look up their most
+#    recent lead. Under that lead, find the deal in the negotiation
+#    stage. Then log a call about 'kickoff' on it. Report deal_id."
+#
+# WHAT IT TESTS:
+#   Multi-hop dependent lookups — each hop's filter comes from the
+#   PREVIOUS hop's result (contact id -> lead id -> deal), so the calls
+#   can't be planned in advance or batched blindly.
+#
+# HOW IT'S MADE VALID:
+#   The contact's name is reserved. "Most recent lead" is unambiguous by
+#   construction: decoy leads are planted 100-200 days old, the real lead
+#   10-60 days old — disjoint ranges, no tie possible. The move-stage
+#   action targets closing only (the anchor is already in negotiation).
+# ──────────────────────────────────────────────────────────────────────
+name: find_deal_via_chain
+answer_keys: [deal_id]
+n_functions: 4      # 3 lookup hops (contact -> lead -> deal) + 1 action
+n_actions: 1
+
+# ── 1. dice rolls ────────────────────────────────────────────────────────
+params:
+  company: {draw: company}
+  contact_name: {draw: person_name}
+  n_old_leads: {randint: [1, 2]}
+  chosen: {sample: deal_actions, k: 1}
+  atype: {choice: [call, email, meeting]}
+  subject: {choice: [pricing, contract, renewal, kickoff]}
+  note: {choice: [confirm terms, send recap, check budget]}
+  due: {sim_date_offset: {choice: [3, 5, 7, 10]}}
+  new_stage: {choice: [closing]}   # anchor is in negotiation — no-op impossible
+
+# ── 2. rows planted into the world ─────────────────────────────────────
+kernel:
+  - {ref: the_contact, table: contacts, row: {name: "{contact_name}", company: "{company}"}}
+  # decoy leads: strictly OLDER than the real one (disjoint date ranges)
+  - {ref: old_leads, table: leads, repeat: "{n_old_leads}",
+     row: {contact_id: "@the_contact", created_at: {sim_date_offset: {randint: [-200, -100]}}}}
+  - {ref: the_lead, table: leads,
+     row: {contact_id: "@the_contact", created_at: {sim_date_offset: {randint: [-60, -10]}}}}
+  - {ref: the_deal, table: deals, row: {lead_id: "@the_lead", stage: negotiation}}
+
+# ── 3. what a correct solution must have changed ───────────────────────
+effects:
+  from_chosen_actions: {anchor: "@the_deal"}
+
+# ── 4. the correct answer ──────────────────────────────────────────────
+answer: {deal_id: "@the_deal"}
+
+# ── 5. the query (fixed form, spells out each hop) ──────────────────────
+query: >-
+  Find the contact named {contact_name} at {company}. Look up their most
+  recent lead. Under that lead, find the deal in the negotiation stage.
+  Then {actions}. Report deal_id.

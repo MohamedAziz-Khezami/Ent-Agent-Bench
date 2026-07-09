@@ -1,0 +1,60 @@
+{
+  "query": "Ugh, the new lead from Alice Mo again. Just mark it as qualified, then correct its source to event, then set its score to 86 so we can move on. lead_id please.",
+  "answer_keys": [
+    "lead_id"
+  ],
+  "ground_truth": {
+    "lead_id": 1
+  },
+  "expected_added": {},
+  "expected_changed": {
+    "leads": [
+      {
+        "id": 1,
+        "fields": {
+          "status": "qualified",
+          "source": "event",
+          "score": 86
+        }
+      }
+    ]
+  },
+  "exact_added_count": {},
+  "forbidden": {
+    "reps": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "contacts": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "leads": [
+      "added",
+      "removed"
+    ],
+    "deals": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "activities": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "followups": [
+      "added",
+      "changed",
+      "removed"
+    ]
+  },
+  "n_functions": 4,
+  "n_actions": 3,
+  "task_id": "task_063",
+  "world_seed": 1063,
+  "difficulty": "hard",
+  "template": "act_on_a_lead"
+}

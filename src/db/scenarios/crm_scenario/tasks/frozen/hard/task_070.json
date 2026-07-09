@@ -1,0 +1,72 @@
+{
+  "query": "Ugh, the contact Jonas Iversen at Tyrell again. Just update their phone number to +1-555-8469, then log a note saying 'check budget' for them, then log a meeting about 'contract' with them so we can move on. contact_id please.",
+  "answer_keys": [
+    "contact_id"
+  ],
+  "ground_truth": {
+    "contact_id": 55
+  },
+  "expected_added": {
+    "activities": [
+      {
+        "contact_id": 55,
+        "type": "note",
+        "subject": "check budget"
+      },
+      {
+        "contact_id": 55,
+        "type": "meeting",
+        "subject": "contract"
+      }
+    ]
+  },
+  "expected_changed": {
+    "contacts": [
+      {
+        "id": 55,
+        "fields": {
+          "phone": "+1-555-8469"
+        }
+      }
+    ]
+  },
+  "exact_added_count": {
+    "activities": 2
+  },
+  "forbidden": {
+    "reps": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "contacts": [
+      "added",
+      "removed"
+    ],
+    "leads": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "deals": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "activities": [
+      "changed",
+      "removed"
+    ],
+    "followups": [
+      "added",
+      "changed",
+      "removed"
+    ]
+  },
+  "n_functions": 4,
+  "n_actions": 3,
+  "task_id": "task_070",
+  "world_seed": 1070,
+  "difficulty": "hard",
+  "template": "act_on_a_contact"
+}

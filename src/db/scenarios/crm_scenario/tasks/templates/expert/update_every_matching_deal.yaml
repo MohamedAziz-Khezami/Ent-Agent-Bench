@@ -1,0 +1,57 @@
+# ──────────────────────────────────────────────────────────────────────
+# TASK TYPE: update_every_matching_deal   (expert tier)
+#
+# WHAT THE MODEL IS ASKED (example):
+#   "Move every prospecting-stage deal owned by Omar Haddad to the
+#    qualification stage. Tell me how many you updated as n_updated."
+#
+# WHAT IT TESTS:
+#   Iteration over a group — the model must find ALL matching deals, loop
+#   over them, update each one, and count what it did. Missing one, or
+#   updating a non-matching one, fails (exact cardinality checks).
+#
+# HOW IT'S MADE VALID:
+#   The group size is DECIDED first (n_deals) and exactly that many
+#   prospecting deals are planted under a reserved rep. Background deals
+#   can never belong to this rep, so the group is closed by construction.
+#   The won/lost clutter deals keep the rep realistic without matching.
+# ──────────────────────────────────────────────────────────────────────
+name: update_every_matching_deal
+answer_keys: [n_updated]
+n_functions: "1 + n_deals"   # 1 group lookup + one update per matching deal
+n_actions: "{n_deals}"
+
+# ── 1. dice rolls ────────────────────────────────────────────────────────
+params:
+  rep_name: {draw: person_name}
+  contact_name: {draw: person_name}
+  company: {draw: company}
+  n_deals: {choice: [2, 3, 4]}
+  n_clutter: {randint: [1, 2]}
+
+# ── 2. rows planted into the world ─────────────────────────────────────
+kernel:
+  - {ref: the_rep, table: reps, row: {name: "{rep_name}"}}
+  - {ref: the_contact, table: contacts, row: {name: "{contact_name}", company: "{company}"}}
+  - {ref: the_leads, table: leads, repeat: "{n_deals}", row: {contact_id: "@the_contact"}}
+  - {ref: the_deals, table: deals, repeat: "{n_deals}",
+     row: {lead_id: "@the_leads", rep_id: "@the_rep", stage: prospecting}}
+  # clutter: the rep also owns some closed deals — realistic footprint,
+  # never matching "prospecting"
+  - {ref: clutter_leads, table: leads, repeat: "{n_clutter}", row: {contact_id: "@the_contact"}}
+  - {ref: clutter_deals, table: deals, repeat: "{n_clutter}",
+     row: {lead_id: "@clutter_leads", rep_id: "@the_rep", stage: {choice: [won, lost]}}}
+
+# ── 3. what a correct solution must have changed: EVERY deal in the group ─
+effects:
+  - for_each: the_deals
+    changed:
+      - {table: deals, id: "@item", fields: {stage: qualification}}
+
+# ── 4. the correct answer ──────────────────────────────────────────────
+answer: {n_updated: "{n_deals}"}
+
+# ── 5. the query (fixed form) ──────────────────────────────────────────
+query: >-
+  Move every prospecting-stage deal owned by {rep_name} to the qualification
+  stage. Tell me how many you updated as n_updated.

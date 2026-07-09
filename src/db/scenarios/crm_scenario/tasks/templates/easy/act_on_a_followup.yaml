@@ -1,0 +1,50 @@
+# ──────────────────────────────────────────────────────────────────────
+# TASK TYPE: act_on_a_followup   (easy tier — 1 action, no distractors)
+#
+# WHAT THE MODEL IS ASKED (example):
+#   "Our overdue follow-up on the Soylent deal needs attention: mark it
+#    as done. Give me the id as followup_id."
+#
+# WHAT IT TESTS:
+#   Finding ONE follow-up by a status+date description ("overdue" means
+#   open AND past its due date), doing one stated action on it.
+#
+# HOW IT'S MADE VALID:
+#   The company is reserved for this task, and the planted follow-up is
+#   open with a past due date — the only row matching "overdue follow-up
+#   on the {company} deal". Push-due-date targets a FUTURE date while the
+#   anchor's is past, and mark-as-done vs status=open — no-ops impossible.
+# ──────────────────────────────────────────────────────────────────────
+name: act_on_a_followup
+answer_keys: [followup_id]
+n_functions: 2      # 1 lookup + 1 action
+n_actions: 1
+
+# ── 1. dice rolls ────────────────────────────────────────────────────────
+params:
+  company: {draw: company}
+  contact_name: {draw: person_name}
+  chosen: {sample: followup_actions, k: 1}
+  due: {sim_date_offset: {choice: [3, 5, 7, 10]}}
+
+# ── 2. rows planted into the world ─────────────────────────────────────
+kernel:
+  - {ref: the_contact, table: contacts, row: {name: "{contact_name}", company: "{company}"}}
+  - {ref: the_lead, table: leads, row: {contact_id: "@the_contact"}}
+  - {ref: the_deal, table: deals, row: {lead_id: "@the_lead", stage: {choice: [prospecting, qualification, proposal, negotiation, closing]}}}
+  - {ref: the_followup, table: followups,
+     row: {deal_id: "@the_deal", due_date: {sim_date_offset: {randint: [-15, -1]}}, status: open}}
+
+# ── 3. what a correct solution must have changed ───────────────────────
+effects:
+  from_chosen_actions: {anchor: "@the_followup"}
+
+# ── 4. the correct answer ──────────────────────────────────────────────
+answer: {followup_id: "@the_followup"}
+
+# ── 5. how the query is phrased ─────────────────────────────────────────
+entity: "overdue follow-up on the {company} deal"
+phrasings:
+  - "Our {entity} needs attention: {actions}. Give me the id as {answer_key}."
+  - "Please {actions} on the {entity}. Report the {answer_key}."
+  - "Quick task: for the {entity}, {actions}. Answer with {answer_key}."

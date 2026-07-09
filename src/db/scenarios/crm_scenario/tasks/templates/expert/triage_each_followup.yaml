@@ -1,0 +1,68 @@
+# ──────────────────────────────────────────────────────────────────────
+# TASK TYPE: triage_each_followup   (expert tier)
+#
+# WHAT THE MODEL IS ASKED (example):
+#   "For each open follow-up on Kira Nakamura's deals: if it's more than
+#    7 days overdue, log a call about it; otherwise push its due date
+#    back by 3 days. Report how many you escalated as n_escalated."
+#
+# WHAT IT TESTS:
+#   Iteration AND per-item branching combined — the hardest mechanism in
+#   the corpus. The model must loop over a group and re-evaluate the date
+#   condition for every single item, taking a different action per bucket.
+#
+# HOW IT'S MADE VALID:
+#   BOTH bucket sizes are DECIDED first (n_high >= 1 planted with offsets
+#   <= -8 days, n_low >= 1 with offsets >= -6), so a degenerate all-one-
+#   bucket task can't be generated. The rep is reserved; background
+#   follow-ups can never land on their deals — the group is closed.
+# ──────────────────────────────────────────────────────────────────────
+name: triage_each_followup
+answer_keys: [n_escalated]
+n_functions: "1 + n_high + n_low"   # 1 group lookup + one action per follow-up
+n_actions: "n_high + n_low"
+
+# ── 1. dice rolls ────────────────────────────────────────────────────────
+params:
+  rep_name: {draw: person_name}
+  contact_name: {draw: person_name}
+  company: {draw: company}
+  n_high: {randint: [1, 3]}   # will be >7 days overdue -> escalate
+  n_low: {randint: [1, 3]}    # will be <=7 days overdue -> push due date
+
+# ── 2. rows planted into the world ─────────────────────────────────────
+kernel:
+  - {ref: the_rep, table: reps, row: {name: "{rep_name}"}}
+  - {ref: the_contact, table: contacts, row: {name: "{contact_name}", company: "{company}"}}
+  # the "escalate" bucket: overdue by more than 7 days
+  - {ref: h_leads, table: leads, repeat: "{n_high}", row: {contact_id: "@the_contact"}}
+  - {ref: h_deals, table: deals, repeat: "{n_high}",
+     row: {lead_id: "@h_leads", rep_id: "@the_rep",
+           stage: {choice: [prospecting, qualification, proposal, negotiation, closing]}}}
+  - {ref: highs, table: followups, repeat: "{n_high}",
+     row: {deal_id: "@h_deals", due_date: {sim_date_offset: {randint: [-20, -8]}}, status: open}}
+  # the "push" bucket: within 7 days (or not yet due)
+  - {ref: l_leads, table: leads, repeat: "{n_low}", row: {contact_id: "@the_contact"}}
+  - {ref: l_deals, table: deals, repeat: "{n_low}",
+     row: {lead_id: "@l_leads", rep_id: "@the_rep",
+           stage: {choice: [prospecting, qualification, proposal, negotiation, closing]}}}
+  - {ref: lows, table: followups, repeat: "{n_low}",
+     row: {deal_id: "@l_deals", due_date: {sim_date_offset: {randint: [-6, 4]}}, status: open}}
+
+# ── 3. what a correct solution must have changed, per bucket ────────────
+effects:
+  - for_each: highs
+    added:
+      - {table: activities, row: {deal_id: "@item.deal_id", type: call, subject: overdue follow-up}}
+  - for_each: lows
+    changed:
+      - {table: followups, id: "@item", fields: {due_date: {expr: "date_offset(item.due_date, 3)"}}}
+
+# ── 4. the correct answer ──────────────────────────────────────────────
+answer: {n_escalated: "{n_high}"}
+
+# ── 5. the query (fixed form) ──────────────────────────────────────────
+query: >-
+  For each open follow-up on {rep_name}'s deals: if it's more than 7 days
+  overdue, log a call about it; otherwise push its due date back by 3 days.
+  Report how many you escalated as n_escalated.

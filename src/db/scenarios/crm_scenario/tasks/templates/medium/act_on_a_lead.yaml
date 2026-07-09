@@ -1,0 +1,58 @@
+# ──────────────────────────────────────────────────────────────────────
+# TASK TYPE: act_on_a_lead   (medium tier — 2 chained actions, 1 distractor)
+#
+# WHAT THE MODEL IS ASKED (example):
+#   "Can you handle the new lead from Noor Diaz? mark it as unqualified,
+#    then set its score to 61. I need the lead_id back."
+#
+# WHAT IT TESTS:
+#   Finding ONE lead by contact-name + status ("the NEW lead from X"),
+#   chaining two lead updates, with an older non-new lead from the same
+#   contact as a distractor.
+#
+# HOW IT'S MADE VALID:
+#   The contact's name is reserved for this task. No-op-proof by disjoint
+#   pools: planted status=new vs targets qualified/unqualified; planted
+#   score 5-55 vs new score 60-95; planted source webform/cold_call vs
+#   new source referral/event/inbound_email.
+# ──────────────────────────────────────────────────────────────────────
+name: act_on_a_lead
+answer_keys: [lead_id]
+n_functions: 3      # 1 lookup + 2 actions
+n_actions: 2
+
+# ── 1. dice rolls ────────────────────────────────────────────────────────
+params:
+  company: {draw: company}
+  contact_name: {draw: person_name}
+  chosen: {sample: lead_actions, k: 2}
+  new_status: {choice: [qualified, unqualified]}
+  new_score: {randint: [60, 95]}
+  new_source: {choice: [referral, event, inbound_email]}
+
+# ── 2. rows planted into the world ─────────────────────────────────────
+kernel:
+  - {ref: the_contact, table: contacts, row: {name: "{contact_name}", company: "{company}"}}
+  - {ref: the_lead, table: leads,
+     row: {contact_id: "@the_contact", status: new,
+           source: {choice: [webform, cold_call]}, score: {randint: [5, 55]}}}
+
+# another lead from the SAME contact, in a non-new status — never matching
+# "the NEW lead from {contact_name}"
+distractors:
+  - {ref: d_lead, table: leads, repeat: 1,
+     row: {contact_id: "@the_contact", status: {choice: [qualified, converted]}}}
+
+# ── 3. what a correct solution must have changed ───────────────────────
+effects:
+  from_chosen_actions: {anchor: "@the_lead"}
+
+# ── 4. the correct answer ──────────────────────────────────────────────
+answer: {lead_id: "@the_lead"}
+
+# ── 5. how the query is phrased ─────────────────────────────────────────
+entity: "new lead from {contact_name}"
+phrasings:
+  - "The {entity} has gone quiet — {actions}. Report {answer_key}."
+  - "Can you handle the {entity}? {actions}. I need the {answer_key} back."
+  - "For the {entity}: {actions}. Answer with the {answer_key} you used."

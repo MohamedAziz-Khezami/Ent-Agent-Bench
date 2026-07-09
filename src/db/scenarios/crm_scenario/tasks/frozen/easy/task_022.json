@@ -1,0 +1,58 @@
+{
+  "query": "Please schedule a follow-up for 2026-06-06 with the note 'send recap' on the proposal deal with Wonka. Report the deal_id.",
+  "answer_keys": [
+    "deal_id"
+  ],
+  "ground_truth": {
+    "deal_id": 1
+  },
+  "expected_added": {
+    "followups": [
+      {
+        "deal_id": 1,
+        "due_date": "2026-06-06"
+      }
+    ]
+  },
+  "expected_changed": {},
+  "exact_added_count": {
+    "followups": 1
+  },
+  "forbidden": {
+    "reps": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "contacts": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "leads": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "deals": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "activities": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "followups": [
+      "changed",
+      "removed"
+    ]
+  },
+  "n_functions": 2,
+  "n_actions": 1,
+  "task_id": "task_022",
+  "world_seed": 1022,
+  "difficulty": "easy",
+  "template": "act_on_a_deal"
+}

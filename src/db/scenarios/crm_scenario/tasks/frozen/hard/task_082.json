@@ -1,0 +1,60 @@
+{
+  "query": "Following up from this morning's pipeline review: the new lead from Priya Ruiz came up again. mark it as unqualified, then set its score to 81, then correct its source to event. Include the lead_id in your reply.",
+  "answer_keys": [
+    "lead_id"
+  ],
+  "ground_truth": {
+    "lead_id": 28
+  },
+  "expected_added": {},
+  "expected_changed": {
+    "leads": [
+      {
+        "id": 28,
+        "fields": {
+          "status": "unqualified",
+          "score": 81,
+          "source": "event"
+        }
+      }
+    ]
+  },
+  "exact_added_count": {},
+  "forbidden": {
+    "reps": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "contacts": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "leads": [
+      "added",
+      "removed"
+    ],
+    "deals": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "activities": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "followups": [
+      "added",
+      "changed",
+      "removed"
+    ]
+  },
+  "n_functions": 4,
+  "n_actions": 3,
+  "task_id": "task_082",
+  "world_seed": 1082,
+  "difficulty": "hard",
+  "template": "act_on_a_lead"
+}

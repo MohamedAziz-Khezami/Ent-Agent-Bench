@@ -1,0 +1,56 @@
+# actions.yaml — the action menus as data (formerly Python lambdas in the
+# search-based generator, same semantics). `row` is the expected-diff
+# template: "@anchor" becomes the anchor row's id, "{param}" placeholders
+# fill from the task's params. `kind: added` rows are partial-match specs
+# for expected_added; `kind: changed` rows carry {id, fields}.
+deal_actions:
+  - phrase: "log a {atype} about '{subject}' on it"
+    kind: added
+    table: activities
+    row: {deal_id: "@anchor", type: "{atype}", subject: "{subject}"}
+  - phrase: "schedule a follow-up for {due} with the note '{note}'"
+    kind: added
+    table: followups
+    row: {deal_id: "@anchor", due_date: "{due}"}
+  - phrase: "move it to the {new_stage} stage"
+    kind: changed
+    table: deals
+    row: {id: "@anchor", fields: {stage: "{new_stage}"}}
+
+lead_actions:
+  - phrase: "mark it as {new_status}"
+    kind: changed
+    table: leads
+    row: {id: "@anchor", fields: {status: "{new_status}"}}
+  - phrase: "set its score to {new_score}"
+    kind: changed
+    table: leads
+    row: {id: "@anchor", fields: {score: "{new_score}"}}
+  - phrase: "correct its source to {new_source}"
+    kind: changed
+    table: leads
+    row: {id: "@anchor", fields: {source: "{new_source}"}}
+
+contact_actions:
+  - phrase: "update their phone number to {new_phone}"
+    kind: changed
+    table: contacts
+    row: {id: "@anchor", fields: {phone: "{new_phone}"}}
+  - phrase: "log a note saying '{note}' for them"
+    kind: added
+    table: activities
+    row: {contact_id: "@anchor", type: note, subject: "{note}"}
+  - phrase: "log a {atype} about '{subject}' with them"
+    kind: added
+    table: activities
+    row: {contact_id: "@anchor", type: "{atype}", subject: "{subject}"}
+
+followup_actions:
+  - phrase: "mark it as done"
+    kind: changed
+    table: followups
+    row: {id: "@anchor", fields: {status: done}}
+  - phrase: "push its due date to {due}"
+    kind: changed
+    table: followups
+    row: {id: "@anchor", fields: {due_date: "{due}"}}

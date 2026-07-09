@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+*.sqlite
+*.sqlite-journal
+# frozen task worlds are corpus artifacts, not build junk — keep them
+!src/db/scenarios/crm_scenario/tasks/frozen/**/*.sqlite
+venv/
+env/
+.env/
+.venv/
+
+.env
+env
+
+Bencmark_harness/

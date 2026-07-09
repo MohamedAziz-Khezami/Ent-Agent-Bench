@@ -1,0 +1,58 @@
+{
+  "query": "Our overdue follow-up on the Stark deal needs attention: push its due date to 2026-06-06. Give me the id as followup_id.",
+  "answer_keys": [
+    "followup_id"
+  ],
+  "ground_truth": {
+    "followup_id": 15
+  },
+  "expected_added": {},
+  "expected_changed": {
+    "followups": [
+      {
+        "id": 15,
+        "fields": {
+          "due_date": "2026-06-06"
+        }
+      }
+    ]
+  },
+  "exact_added_count": {},
+  "forbidden": {
+    "reps": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "contacts": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "leads": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "deals": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "activities": [
+      "added",
+      "changed",
+      "removed"
+    ],
+    "followups": [
+      "added",
+      "removed"
+    ]
+  },
+  "n_functions": 2,
+  "n_actions": 1,
+  "task_id": "task_020",
+  "world_seed": 1020,
+  "difficulty": "easy",
+  "template": "act_on_a_followup"
+}
