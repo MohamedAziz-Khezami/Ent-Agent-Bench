@@ -115,14 +115,14 @@ models:
 
   - name: qwen3-coder-30b-a3b-llamacpp-local
     backend: openai_compatible
-    model_id: unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Qwen3-Coder-30B-A3B-Instruct-BF16.gguf  # unconfirmed — same unsloth F16->BF16 naming pattern seen on gemma-4-12b, verify filename before a real run
+    model_id: unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:BF16/Qwen3-Coder-30B-A3B-Instruct-BF16-00001-of-00002.gguf  # confirmed — full BF16 is split into 2 parts under a BF16/ subfolder, llama.cpp auto-merges from the first
     base_url: http://localhost:8087/v1
     api_key_env: null
     supports_tool_calling: true  # see header note — uses XML tool tags, verify before trusting
 
   - name: deepseek-coder-v2-lite-16b-llamacpp-local
     backend: openai_compatible
-    model_id: bartowski/DeepSeek-Coder-V2-Lite-Instruct-GGUF:DeepSeek-Coder-V2-Lite-Instruct-f16.gguf
+    model_id: bartowski/DeepSeek-Coder-V2-Lite-Instruct-GGUF:DeepSeek-Coder-V2-Lite-Instruct-f32.gguf/DeepSeek-Coder-V2-Lite-Instruct-f32-00001-of-00002.gguf  # confirmed — no f16, only f32 (split into 2 parts under a folder literally named "...-f32.gguf/"), llama.cpp auto-merges from the first
     base_url: http://localhost:8088/v1
     api_key_env: null
     supports_tool_calling: true  # see header note — community template, verify before trusting
