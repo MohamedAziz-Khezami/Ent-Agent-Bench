@@ -1,8 +1,11 @@
-# Leakage measurement: shortcut-guess accuracy on id-answer tasks.
-# All corpora sit at the guessing floor -> no injection fingerprint.
-
-OLD corpus (search-based generator, measured 2026-07-08 before replacement):
-  over 103 id-answer tasks: max_id 1.0%, newest_created_at 1.9%
-
-NEW corpus (constructive generator, per-tier templates, regenerated 2026-07-08):
-  over 91 id-answer tasks: max_id 2.2%, newest_created_at 2.2%
+cheater baseline over 91 id-answer tasks (29 count-answer tasks skipped)
+  max_id: 2/91 = 2.2%
+  newest_created_at: 2/91 = 2.2%
+    easy     max_id: 1/20
+    easy     newest_created_at: 0/20
+    expert   max_id: 1/11
+    expert   newest_created_at: 0/11
+    hard     max_id: 0/30
+    hard     newest_created_at: 2/30
+    medium   max_id: 0/30
+    medium   newest_created_at: 0/30

@@ -9,14 +9,12 @@ import json
 import random
 from pathlib import Path
 
+from config import SEED_BASE, TASKS_PER_TIER, TIERS  # re-exported: existing importers of these names are unchanged
 from src.db.scenarios.crm_scenario.tasks import template_interpreter as ti
 from src.db.scenarios.crm_scenario.tasks import world_builder as wb
 
 TASKS_DIR = Path(__file__).parent
 FROZEN_DIR = TASKS_DIR / "frozen"
-TIERS = ("easy", "medium", "hard", "expert")
-SEED_BASE = 1000
-TASKS_PER_TIER = 30
 
 def build_all(n_per_tier: int = TASKS_PER_TIER, seed_base: int = SEED_BASE, verbose: bool = True) -> int:
     menus = ti.load_actions()

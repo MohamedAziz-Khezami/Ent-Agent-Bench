@@ -2,23 +2,19 @@
 # from the world file using ONLY dumb shortcuts (never reading the query,
 # never filtering by the task's actual predicates). Its accuracy is the
 # corpus's "guessing floor": on a clean corpus the shortcuts should score
-# near chance. Run against the OLD search-based corpus first to establish
-# the baseline; the constructive corpus must not exceed it meaningfully —
-# a jump means injected kernel rows carry a detectable fingerprint
-# (e.g. always the newest/highest-id row). Permanent regression test:
-# re-run after any generator change.
+# near chance — a jump means injected kernel rows carry a detectable
+# fingerprint (e.g. always the newest/highest-id row). Permanent regression
+# test: re-run after any generator change.
 #
 # Only id-shaped answers (deal_id/lead_id/...) are guessable this way;
 # count-shaped answers (n_deals/n_updated/n_escalated) are skipped and
 # reported separately.
 from __future__ import annotations
 
-import tempfile
 from collections import defaultdict
 from pathlib import Path
 
 from src.db import db
-from src.db.scenarios.crm_scenario import crm_db
 from src.db.scenarios.crm_scenario.tasks.build_tasks import load_tasks
 
 _ANSWER_TABLE = {"deal_id": "deals", "lead_id": "leads",
@@ -26,11 +22,8 @@ _ANSWER_TABLE = {"deal_id": "deals", "lead_id": "leads",
 _HAS_CREATED_AT = {"deals", "leads", "contacts"}
 
 
-def _world_path(task: dict, tmp_dir: Path) -> Path:
-    if "world_db" in task:                       # new corpus: frozen artifact
-        return Path(task["world_db"])
-    return crm_db.seed(task["world_seed"],       # old corpus: rebuild from seed
-                        tmp_dir / f"cheat_{task['task_id']}.sqlite")
+def _world_path(task: dict) -> Path:
+    return Path(task["world_db"])
 
 
 def _guesses(conn, table: str) -> dict[str, int | None]:
@@ -51,24 +44,22 @@ def run(selector: str = "all") -> dict:
     per_tier_n: dict[str, int] = defaultdict(int)
     n_id_tasks, n_count_tasks = 0, 0
 
-    with tempfile.TemporaryDirectory() as td:
-        tmp_dir = Path(td)
-        for task in tasks:
-            key = task["answer_keys"][0]
-            if key not in _ANSWER_TABLE:
-                n_count_tasks += 1
-                continue
-            n_id_tasks += 1
-            per_tier_n[task["difficulty"]] += 1
-            truth = task["ground_truth"][key]
-            conn = db.connect(_world_path(task, tmp_dir))
-            try:
-                for name, guess in _guesses(conn, _ANSWER_TABLE[key]).items():
-                    if guess == truth:
-                        hits[name] += 1
-                        per_tier_hits[(task["difficulty"], name)] += 1
-            finally:
-                conn.close()
+    for task in tasks:
+        key = task["answer_keys"][0]
+        if key not in _ANSWER_TABLE:
+            n_count_tasks += 1
+            continue
+        n_id_tasks += 1
+        per_tier_n[task["difficulty"]] += 1
+        truth = task["ground_truth"][key]
+        conn = db.connect(_world_path(task))
+        try:
+            for name, guess in _guesses(conn, _ANSWER_TABLE[key]).items():
+                if guess == truth:
+                    hits[name] += 1
+                    per_tier_hits[(task["difficulty"], name)] += 1
+        finally:
+            conn.close()
 
     return {"n_id_tasks": n_id_tasks, "n_count_tasks": n_count_tasks,
             "hits": dict(hits), "per_tier_hits": dict(per_tier_hits),

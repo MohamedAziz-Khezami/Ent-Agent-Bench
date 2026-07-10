@@ -130,7 +130,7 @@ async function execBlock(code) {
   const origLog = console.log;
   console.log = (...a) => { stdout += a.map(String).join(' ') + '\n'; };
   try {
-    value = await vm.runInContext(checked.js, sandbox, { timeout: 20000 });
+    value = await vm.runInContext(checked.js, sandbox, { timeout: 60000 });
   } catch (e) {
     // "name" is the JS error class (e.g. TypeError, ReferenceError) — TS
     // syntax/type errors are already distinguished above via `code`, so this

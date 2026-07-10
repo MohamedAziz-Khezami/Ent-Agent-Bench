@@ -38,7 +38,7 @@ async function execBlock(code) {
   console.log = (...a) => { stdout += a.map(String).join(' ') + '\n'; };
   try {
     const wrapped = `(async () => { ${wrapWithReturn(code)} })()`;
-    value = await vm.runInContext(wrapped, sandbox, { timeout: 20000 });
+    value = await vm.runInContext(wrapped, sandbox, { timeout: 60000 });
   } catch (e) {
     // "name" is the JS error class (e.g. SyntaxError, TypeError, ReferenceError)
     // so the meter can distinguish a syntax error from a tool error from any

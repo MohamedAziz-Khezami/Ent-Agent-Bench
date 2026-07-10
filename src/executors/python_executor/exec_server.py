@@ -1,8 +1,4 @@
-# exec_server.py — the /exec endpoint running inside the Python executor
-# container. Runs one code block per call, with `tools` in scope; if the
-# last statement is a bare expression, its value becomes the result (same
-# REPL-style convention the JS/TS executor uses, so both languages behave
-# the same way from the harness's point of view).
+# exec_server.py
 from __future__ import annotations
 
 import ast
@@ -10,6 +6,7 @@ import contextlib
 import io
 import json
 import os
+import signal
 
 from flask import Flask, jsonify, request
 
@@ -17,6 +14,20 @@ from tools_client import Tools
 
 app = Flask(__name__)
 tools = Tools(os.environ.get("TOOL_SERVER_URL", "http://localhost:8000"))
+
+
+_EXEC_TIMEOUT_S = 60
+
+
+class ExecTimeout(Exception):
+    pass
+
+
+def _raise_timeout(signum, frame):
+    raise ExecTimeout(f"execution exceeded {_EXEC_TIMEOUT_S}s")
+
+
+signal.signal(signal.SIGALRM, _raise_timeout)
 
 
 def run_capturing_last_expr(code: str, namespace: dict):
@@ -36,15 +47,20 @@ def exec_code():
     value, error = None, None
     tools.call_count = 0
     try:
-        with contextlib.redirect_stdout(stdout_buf):
-            value = run_capturing_last_expr(code, {"tools": tools})
+        signal.alarm(_EXEC_TIMEOUT_S)
+        try:
+            with contextlib.redirect_stdout(stdout_buf):
+                value = run_capturing_last_expr(code, {"tools": tools})
+        finally:
+            signal.alarm(0)
         json.dumps(value)  # confirm JSON-safe before returning
     except TypeError:
         value = str(value)
     except Exception as e:  # model code can raise anything; always report, never crash the server
-        # "name" is the exception class (e.g. SyntaxError, NameError, RuntimeError)
-        # so the meter can tell a syntax error apart from a tool error apart from
-        # any other runtime mistake, none of which set a meaningful "code" on their own.
+        # "name" is the exception class (e.g. SyntaxError, NameError, RuntimeError,
+        # ExecTimeout) so the meter can tell a syntax error apart from a tool error
+        # apart from any other runtime mistake, none of which set a meaningful
+        # "code" on their own.
         error = {"message": str(e), "code": getattr(e, "code", None), "name": type(e).__name__}
     return jsonify({"ok": error is None, "stdout": stdout_buf.getvalue(),
                      "value": value, "error": error, "tool_calls": tools.call_count})

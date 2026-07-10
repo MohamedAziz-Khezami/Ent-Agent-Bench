@@ -1,110 +1,26 @@
 # registry of models to benchmark.
 models:
-  - name: gemma4-ollama-local
-    backend: openai_compatible
-    model_id: gemma4
-    base_url: http://localhost:11434/v1
-    api_key_env: null
-    supports_tool_calling: true   # confirmed via a real /v1/chat/completions call with tools=[...]
-
-  # ── llama.cpp fleet ────────────────────────────────────────────────────
-  # llama-server serves exactly ONE model per process — there's no
-  # multi-model swapping built into llama.cpp itself. Each entry below
-  # assumes its own `llama-server -m <gguf> --port <port>` instance; only
-  # whichever ones are actually running will respond when a run hits them.
-  # Ports assigned sequentially, 8080 upward, one per model.
-  #
-  # NO QUANTIZATION: every model_id below is pinned to the repo's
-  # unquantized file (suffix "-f16.gguf", or "-f32.gguf" where that's the
-  # only full-precision file offered) instead of a bare repo name, so a
-  # runtime pull can't silently grab a quantized default — EXCEPT the two
-  # 70B+ entries (qwen2.5-72b, llama3.1-70b), which are a deliberate
-  # 8-bit exception: full F16 at that size exceeds this workstation's 128GB
-  # VRAM and would spill to slow system RAM, so those two are pinned to
-  # Q8_0 GGUF files instead (near-lossless, fits fully in VRAM). Rough
-  # F16/F32 footprints: 8B~16GB, 12-16B~24-32GB, 20B~40GB, 26-30B (MoE,
-  # stores ALL experts)~52-60GB, 70-72B~140-144GB (Q8_0~75-77GB instead)
-  # (Q8_0~110GB instead). Only the filenames noted "(confirmed)" below were
-  # checked against the actual HF file listing; the rest follow the same
-  # bartowski/unsloth/ggml-org naming convention but haven't been
-  # individually confirmed — verify the filename resolves before a real run.
-  #
-  # sm_120 (RTX 5090) note: llama.cpp compiles its CUDA kernels directly
-  # against whatever -DCMAKE_CUDA_ARCHITECTURES you build for, rather than
-  # depending on someone else's prebuilt architecture-specific wheel (the
-  # class of problem that blocked SGLang/sgl-kernel on this hardware) —
-  # build with -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=120.
-  #
-  # supports_tool_calling reflects real, sourced findings, not assumptions:
-  #   - gpt-oss-20b: earlier sourced reports (pre-dating this session's actual
-  #     llama.cpp build) described llama.cpp failing to emit proper tool_call
-  #     structures for this model — but a real, isolated /v1/chat/completions
-  #     call against this exact build (b9949) returned a clean, correctly
-  #     structured tool_calls response. Flipped to true based on that direct
-  #     evidence, overriding the earlier secondhand report.
-  #   - qwen3-coder-30b-a3b: uses XML-style tool tags, not the Hermes JSON
-  #     style llama.cpp's autoparser defaults to for most Qwen models —
-  #     verify the actual tool_calls come back structured before trusting
-  #     this flag; if they don't, flip to false.
-  #   - deepseek-coder-v2-lite-16b: tool-calling only confirmed via a
-  #     community-added Ollama template, not the base model's own format —
-  #     same verify-before-trusting caveat.
-
-  - name: qwen3-8b-instruct-llamacpp-local
-    backend: openai_compatible
-    model_id: bartowski/Qwen_Qwen3-8B-GGUF:Qwen_Qwen3-8B-bf16.gguf  # confirmed — the official Qwen/Qwen3-8B-GGUF repo only ships quantized files, no unquantized option at all
-    base_url: http://localhost:8080/v1
-    api_key_env: null
-    supports_tool_calling: true
-
-  - name: llama3.1-8b-instruct-llamacpp-local
-    backend: openai_compatible
-    model_id: bartowski/Meta-Llama-3.1-8B-Instruct-GGUF:Meta-Llama-3.1-8B-Instruct-f32.gguf  # confirmed
-    base_url: http://localhost:8081/v1
-    api_key_env: null
-    supports_tool_calling: false
-
-  - name: mistral-7b-instruct-v0.3-llamacpp-local
-    backend: openai_compatible
-    model_id: bartowski/Mistral-7B-Instruct-v0.3-GGUF:Mistral-7B-Instruct-v0.3-f32.gguf  # confirmed — this repo only ships f32, no f16 variant
-    base_url: http://localhost:8082/v1
-    api_key_env: null
-    # real, reproduced finding (not an assumption): every --chat-template
-    # override for this exact GGUF broke prompt construction entirely, and
-    # plain --jinja alone never populates tool_calls even for a trivial
-    # single-tool prompt — confirmed again via a full real episode run
-    # (tool_calls_made: 0 on all 4 surfaces, full 20-turn budget burned,
-    # no final answer). Defaults to text_block instead of wasting turns.
-    supports_tool_calling: false
-
+  # ── llama.cpp ───────────────────────────────────────────────────
   - name: gemma4-12b-llamacpp-local
     backend: openai_compatible
-    model_id: unsloth/gemma-4-12b-it-GGUF:gemma-4-12b-it-BF16.gguf  # confirmed — unsloth repos ship BF16, not F16, as the unquantized file
+    model_id: unsloth/gemma-4-12b-it-GGUF:gemma-4-12b-it-BF16.gguf
     base_url: http://localhost:8083/v1
     api_key_env: null
     supports_tool_calling: true
 
   - name: qwen2.5-14b-instruct-llamacpp-local
     backend: openai_compatible
-    model_id: bartowski/Qwen2.5-14B-Instruct-GGUF:Qwen2.5-14B-Instruct-f16.gguf  # confirmed
+    model_id: bartowski/Qwen2.5-14B-Instruct-GGUF:Qwen2.5-14B-Instruct-f16.gguf
     base_url: http://localhost:8084/v1
     api_key_env: null
-    # quantization has been reported to measurably affect this model's
-    # function-calling behavior — pinned to the full F16 file specifically
-    # to avoid that risk
     supports_tool_calling: true
 
   - name: gpt-oss-20b-llamacpp-local
     backend: openai_compatible
-    # exception to the no-quantization rule, but not a downstream compression
-    # choice like the Q8_0 entries below: this is the ONLY file in the repo.
-    # OpenAI released GPT-OSS natively in MXFP4 (a 4-bit microscaling float
-    # format) from the start — there's no F16/BF16 original to fall back to
-    # for this specific model.
-    model_id: ggml-org/gpt-oss-20b-GGUF:gpt-oss-20b-mxfp4.gguf  # confirmed — only file this repo has
+    model_id: ggml-org/gpt-oss-20b-GGUF:gpt-oss-20b-mxfp4.gguf
     base_url: http://localhost:8085/v1
     api_key_env: null
-    supports_tool_calling: true  # see header note — confirmed via a real /v1/chat/completions call with tools=[...], overriding an earlier secondhand report
+    supports_tool_calling: true
 
   - name: gemma4-26b-a4b-llamacpp-local
     backend: openai_compatible
@@ -115,51 +31,21 @@ models:
 
   - name: qwen3-coder-30b-a3b-llamacpp-local
     backend: openai_compatible
-    model_id: unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:BF16/Qwen3-Coder-30B-A3B-Instruct-BF16-00001-of-00002.gguf  # confirmed — full BF16 is split into 2 parts under a BF16/ subfolder, llama.cpp auto-merges from the first
+    model_id: unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:BF16/Qwen3-Coder-30B-A3B-Instruct-BF16-00001-of-00002.gguf
     base_url: http://localhost:8087/v1
     api_key_env: null
-    supports_tool_calling: true  # see header note — uses XML tool tags, verify before trusting
+    supports_tool_calling: true
 
-  - name: deepseek-coder-v2-lite-16b-llamacpp-local
+  - name: gemma4-31b-llamacpp-local
     backend: openai_compatible
-    model_id: bartowski/DeepSeek-Coder-V2-Lite-Instruct-GGUF:DeepSeek-Coder-V2-Lite-Instruct-f32.gguf/DeepSeek-Coder-V2-Lite-Instruct-f32-00001-of-00002.gguf  # confirmed — no f16, only f32 (split into 2 parts under a folder literally named "...-f32.gguf/"), llama.cpp auto-merges from the first
+    model_id: unsloth/gemma-4-31B-it-GGUF:BF16/gemma-4-31B-it-BF16-00001-of-00002.gguf
     base_url: http://localhost:8088/v1
     api_key_env: null
-    # real, reproduced finding (not an assumption): plain --jinja never
-    # populates tool_calls (prompt_tokens stays low, model ignores the
-    # tools entirely); forcing --chat-template deepseek breaks prompt
-    # construction outright (prompt_tokens: 3, garbled unrelated output) —
-    # same class of --chat-template-override bug seen on Mistral-7B and
-    # Qwen3-8B's earlier attempts on this build. Defaults to text_block.
-    supports_tool_calling: false
+    supports_tool_calling: true
 
   - name: qwen2.5-72b-instruct-q8-llamacpp-local
     backend: openai_compatible
-    # deliberate 8-bit exception (see header note): F16 at 72B is ~144GB,
-    # exceeds 128GB VRAM. Q8_0 (~77GB, confirmed 77.26GB on HF) fits
-    # entirely in VRAM across the 4x RTX 5090s at full GPU speed.
-    model_id: bartowski/Qwen2.5-72B-Instruct-GGUF:Qwen2.5-72B-Instruct-Q8_0/Qwen2.5-72B-Instruct-Q8_0-00001-of-00002.gguf  # confirmed — split into 2 parts under a subfolder, llama.cpp auto-merges from the first
+    model_id: bartowski/Qwen2.5-72B-Instruct-GGUF:Qwen2.5-72B-Instruct-Q8_0/Qwen2.5-72B-Instruct-Q8_0-00001-of-00002.gguf
     base_url: http://localhost:8089/v1
     api_key_env: null
-    supports_tool_calling: true  # native Hermes-style JSON tool calls, same family as the other Qwen2.5 entries above
-
-  - name: llama3.1-70b-instruct-q8-llamacpp-local
-    backend: openai_compatible
-    # replaces command-r-plus-104b-q8 in this slot: Command R+ genuinely
-    # reasons about tools correctly but emits its own native Cohere
-    # "Action: ```json [...]```<|END_OF_TURN_TOKEN|>" format, which this
-    # llama.cpp build's parser never converts into structured tool_calls;
-    # forcing --chat-template command-r fixes the format but breaks EOS
-    # handling entirely (runaway generation past 2500+ tokens on a single
-    # trivial request). Llama-3.1-8B (same vendor/format family) already
-    # confirmed clean tool-calling on this exact build, so this is the
-    # lower-risk pick for the "very big" slot over chasing another
-    # untested 100B+ model. Technically <100B (70B), a deliberate
-    # trade-down from Command R+'s 104B given the above.
-    # 8-bit exception (see header note): F16 at 70B is ~140GB, exceeds
-    # 128GB VRAM. Q8_0 (~75GB, confirmed: split into 2 standard parts
-    # llama.cpp auto-merges from the first) fits comfortably in VRAM.
-    model_id: bartowski/Meta-Llama-3.1-70B-Instruct-GGUF:Meta-Llama-3.1-70B-Instruct-Q8_0/Meta-Llama-3.1-70B-Instruct-Q8_0-00001-of-00002.gguf  # confirmed
-    base_url: http://localhost:8090/v1
-    api_key_env: null
-    supports_tool_calling: true  # same vendor/format as llama3.1-8b-instruct-llamacpp-local, confirmed clean tool-calling on this build — verify with a real curl test before trusting for this specific size/quant
+    supports_tool_calling: true

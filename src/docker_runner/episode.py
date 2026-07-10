@@ -38,6 +38,16 @@ from pathlib import Path
 import docker
 import requests
 
+from config import (
+    CONTAINER_READY_POLL_INTERVAL_S,
+    CONTAINER_READY_REQUEST_TIMEOUT_S,
+    CONTAINER_READY_TIMEOUT_S,
+    EXEC_HTTP_TIMEOUT_S,
+    EXECUTOR_IMAGES as _EXECUTOR_IMAGES,
+    RETRY_DELAYS_S as _EXEC_RETRY_DELAYS_S,
+    TOOL_SERVER_IMAGE as _TOOL_SERVER_IMAGE,
+)
+
 # A container that's genuinely dead will fail every retry too (these are
 # short/cheap, not a substitute for fixing an actual OOM/crash root cause) —
 # but a real transient blip (brief Docker networking hiccup, momentary
@@ -46,18 +56,10 @@ import requests
 # connection. Only retries connection-level failures (the container
 # unreachable at all); an actual non-2xx response from a live container is
 # a real application error, not something a retry would fix.
-_EXEC_RETRY_DELAYS_S = (0.5, 1.0, 2.0)
-
-_TOOL_SERVER_IMAGE = "ent-agent-bench/tool-server"
-_EXECUTOR_IMAGES = {
-    "python": "ent-agent-bench/python-executor",
-    "js": "ent-agent-bench/js-executor",
-    "ts": "ent-agent-bench/ts-executor",
-}
 
 
 class Episode:
-    def __init__(self, world_db: str | Path, surface: str, ready_timeout_s: float = 15.0):
+    def __init__(self, world_db: str | Path, surface: str, ready_timeout_s: float = CONTAINER_READY_TIMEOUT_S):
         if surface not in ("python", "js", "ts", "json_mcp"):
             raise ValueError(f"unknown surface: {surface}")
         self.surface = surface
@@ -99,16 +101,16 @@ class Episode:
         container.reload()
         host_port = container.ports[f"{internal_port}/tcp"][0]["HostPort"]
         url = f"http://localhost:{host_port}"
-        deadline = __import__("time").monotonic() + timeout_s
+        deadline = time.monotonic() + timeout_s
         last_error = None
-        while __import__("time").monotonic() < deadline:
+        while time.monotonic() < deadline:
             try:
                 path = "/openapi.json" if internal_port == 8000 else "/health"
-                requests.get(f"{url}{path}", timeout=1)
+                requests.get(f"{url}{path}", timeout=CONTAINER_READY_REQUEST_TIMEOUT_S)
                 return url
             except requests.RequestException as e:
                 last_error = e
-                __import__("time").sleep(0.3)
+                time.sleep(CONTAINER_READY_POLL_INTERVAL_S)
         raise RuntimeError(f"{container.name} never became ready on port {internal_port}: {last_error}")
 
     def tool_server_url(self) -> str:
@@ -124,7 +126,7 @@ class Episode:
             try:
                 resp = requests.post(f"{self._executor_url}/exec",
                                       json={"code": code, "lang": lang or self.surface},
-                                      timeout=60)
+                                      timeout=EXEC_HTTP_TIMEOUT_S)
                 resp.raise_for_status()
                 return resp.json()
             except requests.exceptions.ConnectionError as e:

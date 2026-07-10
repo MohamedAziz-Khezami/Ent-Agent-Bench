@@ -36,7 +36,14 @@ def main() -> None:
         return
 
     all_configs = {c.name: c for c in load_model_registry(args.models_yaml)}
-    selected_models = [all_configs[name] for name in args.models.split(",")]
+    requested_names = [n.strip() for n in args.models.split(",")]
+    unknown = [n for n in requested_names if n not in all_configs]
+    if unknown:
+        available = "\n".join(f"  {n}" for n in sorted(all_configs))
+        raise SystemExit(
+            f"unknown model name(s): {', '.join(unknown)}\n"
+            f"available models in {args.models_yaml}:\n{available}")
+    selected_models = [all_configs[name] for name in requested_names]
 
     surfaces = args.surfaces.split(",")
 
@@ -50,6 +57,13 @@ def main() -> None:
 
     out_path = Path(args.out) if args.out else Path(
         f"results/run_{datetime.datetime.now():%Y-%m-%d_%H%M%S}.csv")
+    if not out_path.suffix:
+        # trajectory_dir below is out_path with its suffix stripped — an
+        # --out with NO suffix at all would make trajectory_dir identical to
+        # out_path itself, and since trajectory_dir.mkdir() runs first, the
+        # later out_path.open("w") would fail with IsADirectoryError.
+        # Defaulting a missing suffix to .csv keeps the two paths distinct.
+        out_path = out_path.with_suffix(".csv")
     out_path.parent.mkdir(parents=True, exist_ok=True)
     # trajectories for this run live in a folder named after the CSV itself
     # (e.g. results/sub10b_easy.csv -> results/sub10b_easy/), not one shared

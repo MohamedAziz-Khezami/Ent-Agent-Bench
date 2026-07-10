@@ -25,14 +25,12 @@ import random
 from datetime import date, timedelta
 from pathlib import Path
 
+from config import BACKGROUND_COUNTS as _BG_COUNTS
+from config import GUARD_REDRAW_LIMIT as _GUARD_REDRAW_LIMIT
 from src.db import db
 from src.db.scenarios.crm_scenario import pools
 from src.db.scenarios.crm_scenario.crm_db import CRM_SCHEMA, SIM_TODAY, TABLES
 from src.db.scenarios.crm_scenario.tasks import template_interpreter as ti
-
-_BG_COUNTS = {"reps": 6, "contacts": 60, "leads": 40, "deals": 35,
-              "activities": 50, "followups": 15}
-_GUARD_REDRAW_LIMIT = 30
 
 
 def _complete_forbidden(expected_added: dict, expected_changed: dict) -> dict:

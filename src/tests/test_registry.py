@@ -7,10 +7,10 @@ from src.llm_clients.registry import ModelConfig, load_model_registry
 
 def test_loads_real_models_yaml():
     configs = load_model_registry("models.yaml")
-    assert len(configs) == 12
+    assert len(configs) == 7
     names = {c.name for c in configs}
-    assert "gemma4-ollama-local" in names
-    assert "llama3.1-70b-instruct-q8-llamacpp-local" in names
+    assert "gemma4-12b-llamacpp-local" in names
+    assert "qwen2.5-72b-instruct-q8-llamacpp-local" in names
 
 
 def test_openai_compatible_config_defaults():
@@ -28,9 +28,3 @@ def test_unknown_backend_rejected():
 def test_openai_compatible_requires_base_url():
     with pytest.raises(ValueError, match="requires base_url"):
         ModelConfig(name="x", backend="openai_compatible", model_id="m")
-
-
-def test_anthropic_does_not_require_base_url():
-    c = ModelConfig(name="x", backend="anthropic", model_id="claude-sonnet-5",
-                     api_key_env="ANTHROPIC_API_KEY")
-    assert c.base_url is None

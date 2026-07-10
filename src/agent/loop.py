@@ -20,6 +20,8 @@ import uuid
 
 import requests
 
+from config import RETRY_DELAYS_S as _TOOL_CALL_RETRY_DELAYS_S
+from config import CONTAINER_READY_TIMEOUT_S, TOOL_CALL_HTTP_TIMEOUT_S, TRAJECTORY_DIR, TURN_BUDGET
 from src.agent import prompts
 from src.agent.final_answer import is_final_answer, parse_final_answer
 from src.agent.trajectory import Trajectory
@@ -30,17 +32,6 @@ from src.llm_clients.client import make_client
 from src.meter.meter import EpisodeMeter
 from src.verifier.verify import verify
 
-#TODO: Move them to env and config file
-
-TRAJECTORY_DIR = "results/trajectories"
-# Uniform across every surface on purpose (not n_functions + slack): json_mcp
-# needs ~1 turn per required tool call (no batching), code-mode can batch
-# many calls into one execute() turn — a per-task budget derived from
-# n_functions would silently give code-mode far more slack than json_mcp on
-# the same task. A fixed budget keeps the comparison fair; if json_mcp runs
-# out of room on a hard multi-action task, that's a real, comparable finding
-# (hit_turn_budget), not a harness artifact.
-TURN_BUDGET = 20
 _EMPTY_VERIFY_CHECKS = {"answer": False, "expected_added": False, "exact_added_count": False,
                         "expected_changed": False, "exact_changed_count": False, "forbidden": False}
 
@@ -68,9 +59,6 @@ def _extract_code_fence(text: str, lang: str) -> str | None:
     return match.group(1).strip() if match else None
 
 
-_TOOL_CALL_RETRY_DELAYS_S = (0.5, 1.0, 2.0)
-
-
 def _call_crm_tool_directly(tool_server_url: str, name: str, args: dict):
     """json_mcp mode has no executor container — tool calls go straight to
     the tool-server's HTTP API. Returns (exec_result_shaped_dict, latency,
@@ -89,7 +77,7 @@ def _call_crm_tool_directly(tool_server_url: str, name: str, args: dict):
         if delay:
             time.sleep(delay)
         try:
-            resp = requests.post(f"{tool_server_url}/{name}", json=args, timeout=30)
+            resp = requests.post(f"{tool_server_url}/{name}", json=args, timeout=TOOL_CALL_HTTP_TIMEOUT_S)
             resp.raise_for_status()
             result = resp.json()
             break
@@ -136,7 +124,8 @@ def _safe_save_trajectory(traj: Trajectory, trajectory_dir: str) -> None:
         print(f"[warn] failed to save trajectory {traj.episode_id}: {e}")
 
 
-def run_episode(model_config, surface: str, interaction_mode: str, task: dict, ready_timeout_s: float = 15.0,
+def run_episode(model_config, surface: str, interaction_mode: str, task: dict,
+                 ready_timeout_s: float = CONTAINER_READY_TIMEOUT_S,
                  trajectory_dir: str | None = None) -> dict:
     """trajectory_dir: where this episode's trajectory JSON is written. Defaults
     to TRAJECTORY_DIR (results/trajectories) for standalone/test use; main.py
