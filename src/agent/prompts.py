@@ -50,6 +50,21 @@ def build_tools_param(surface: str, interaction_mode: str, task: dict) -> list[d
     return [_TOOLS_JSON["execute"], final_answer]
 
 
+_LOOKUP_DISCIPLINE = (
+    "Never guess or fabricate an id — every id you use (in an action or in "
+    "your final answer) must come from a tool result you actually received. "
+    "Entities are related in a chain: a contact belongs to a company, a "
+    "lead belongs to a contact, a deal belongs to a lead, and activities/"
+    "follow-ups belong to a deal or contact. If the task refers to a "
+    "specific existing record (e.g. \"the overdue follow-up on the Acme "
+    "deal\"), search/look it up through that chain first — do not create a "
+    "new record as a substitute when a lookup comes up empty; broaden or "
+    "retry the search instead. Before calling final_answer, double-check "
+    "the id(s) you're reporting actually match the entity the task "
+    "described, not just any record you happened to touch."
+)
+
+
 def build_system_prompt(surface: str, interaction_mode: str, task: dict) -> str:
     answer_keys = ", ".join(task["answer_keys"])
 
@@ -60,7 +75,9 @@ def build_system_prompt(surface: str, interaction_mode: str, task: dict) -> str:
             "You are solving a CRM task. "
             f"{today_line} "
             "Use the provided tools to look up and "
-            "modify data as needed. When you have the answer, call final_answer "
+            "modify data as needed. "
+            f"{_LOOKUP_DISCIPLINE} "
+            "When you have the answer, call final_answer "
             f"with these fields: {answer_keys}."
         )
 
@@ -74,6 +91,7 @@ def build_system_prompt(surface: str, interaction_mode: str, task: dict) -> str:
             f"lang='{surface}', never any other value. Inside your code, a `tools` "
             "object is available with one method per CRM tool. Its available "
             f"methods:\n\n{tools_doc}\n\n"
+            f"{_LOOKUP_DISCIPLINE} "
             "When you have the answer, call final_answer with these fields: "
             f"{answer_keys}."
         )
@@ -83,6 +101,7 @@ def build_system_prompt(surface: str, interaction_mode: str, task: dict) -> str:
         f"You solve CRM tasks by writing {surface} code in a fenced "
         f"```{surface} block. {today_line} Inside your code, a `tools` object is available "
         f"with one method per CRM tool. Its available methods:\n\n{tools_doc}\n\n"
+        f"{_LOOKUP_DISCIPLINE} "
         "When you have solved the task, write the marker FINAL_ANSWER followed "
         "by a ```json code block containing an object with these exact keys: "
         f"{answer_keys}."
