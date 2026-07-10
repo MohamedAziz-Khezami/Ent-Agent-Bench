@@ -102,7 +102,29 @@ def _episode_error_result(message: str) -> dict:
     return {"passed": False, "reasons": [f"episode error: {message}"], "checks": dict(_EMPTY_VERIFY_CHECKS)}
 
 
-def run_episode(model_config, surface: str, interaction_mode: str, task: dict, ready_timeout_s: float = 15.0) -> dict:
+def _safe_save_trajectory(traj: Trajectory, trajectory_dir: str) -> None:
+    """A trajectory-save failure (full disk, permission error...) must never
+    crash the batch run — the CSV row from meter.finalize() is the row of
+    record either way; the trajectory JSON is supplementary detail. Two of
+    the four call sites for this sit outside/at the edge of run_episode()'s
+    own exception handling (the infra-error path is before the main try;
+    the episode-error handler is the outermost catch), so this needs its
+    own guard rather than relying on an enclosing try/except."""
+    try:
+        traj.save(trajectory_dir)
+    except Exception as e:  # noqa: BLE001 — deliberately swallow: see docstring
+        print(f"[warn] failed to save trajectory {traj.episode_id}: {e}")
+
+
+def run_episode(model_config, surface: str, interaction_mode: str, task: dict, ready_timeout_s: float = 15.0,
+                 trajectory_dir: str | None = None) -> dict:
+    """trajectory_dir: where this episode's trajectory JSON is written. Defaults
+    to TRAJECTORY_DIR (results/trajectories) for standalone/test use; main.py
+    passes a directory named after the run's own CSV, so a run's CSV and its
+    trajectories always live under matching names instead of one shared,
+    run-agnostic folder every invocation dumps into."""
+    if trajectory_dir is None:
+        trajectory_dir = TRAJECTORY_DIR
     world_seed = task["world_seed"]
     episode_id = uuid.uuid4().hex[:8]
     meter = EpisodeMeter(episode_id, model_config.name, surface, interaction_mode, task["task_id"], task["difficulty"], world_seed, task["n_functions"])
@@ -118,7 +140,7 @@ def run_episode(model_config, surface: str, interaction_mode: str, task: dict, r
         meter.mark_infra_error()
         infra_result = _infra_error_result(str(e))
         traj.finish(None, infra_result)
-        traj.save(TRAJECTORY_DIR)
+        _safe_save_trajectory(traj, trajectory_dir)
         return meter.finalize(infra_result)
 
     try:
@@ -140,7 +162,7 @@ def run_episode(model_config, surface: str, interaction_mode: str, task: dict, r
                 meter.mark_model_api_error(str(e))
                 error_result = _model_api_error_result(str(e))
                 traj.finish(None, error_result)
-                traj.save(TRAJECTORY_DIR)
+                _safe_save_trajectory(traj, trajectory_dir)
                 return meter.finalize(error_result)
             turn_latency = time.monotonic() - t0
             meter.record_model_turn(turn_latency, resp.input_tokens, resp.output_tokens)
@@ -227,7 +249,7 @@ def run_episode(model_config, surface: str, interaction_mode: str, task: dict, r
         diff = db_mod.state_diff(baseline, episode.db_path, crm_db.TABLES)
         verify_result = verify(task, diff, answer_fields)
         traj.finish(answer_fields, verify_result)
-        traj.save(TRAJECTORY_DIR)
+        _safe_save_trajectory(traj, trajectory_dir)
         return meter.finalize(verify_result)
     except Exception as e:  # noqa: BLE001 — last-resort net: an executor container
         # hanging, a tool-server network blip, a bug in verify()/state_diff — none
@@ -238,7 +260,7 @@ def run_episode(model_config, surface: str, interaction_mode: str, task: dict, r
         meter.mark_episode_error(str(e))
         error_result = _episode_error_result(str(e))
         traj.finish(None, error_result)
-        traj.save(TRAJECTORY_DIR)
+        _safe_save_trajectory(traj, trajectory_dir)
         return meter.finalize(error_result)
     finally:
         episode.teardown()

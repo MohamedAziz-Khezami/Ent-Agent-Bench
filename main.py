@@ -51,6 +51,11 @@ def main() -> None:
     out_path = Path(args.out) if args.out else Path(
         f"results/run_{datetime.datetime.now():%Y-%m-%d_%H%M%S}.csv")
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    # trajectories for this run live in a folder named after the CSV itself
+    # (e.g. results/sub10b_easy.csv -> results/sub10b_easy/), not one shared
+    # results/trajectories folder every invocation dumps into regardless of run
+    trajectory_dir = out_path.with_suffix("")
+    trajectory_dir.mkdir(parents=True, exist_ok=True)
 
     def modes_for(model_config):
         if args.interaction_modes:
@@ -66,7 +71,7 @@ def main() -> None:
             for surface in surfaces:
                 for mode in modes_for(model_config):
                     for task in tasks:
-                        row = run_episode(model_config, surface, mode, task)
+                        row = run_episode(model_config, surface, mode, task, trajectory_dir=str(trajectory_dir))
                         writer.writerow(row)
                         f.flush()
                         done += 1

@@ -6,6 +6,8 @@
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 from pathlib import Path
 
 
@@ -64,8 +66,20 @@ class Trajectory:
         }
 
     def save(self, directory: str | Path) -> Path:
+        """Writes atomically: a partial write (killed process, full disk mid-write)
+        must never leave a truncated/corrupt file at the real path — write to a
+        temp file in the same directory first, then rename, which is atomic on
+        POSIX. Same-directory temp file so the rename can't cross filesystems."""
         directory = Path(directory)
         directory.mkdir(parents=True, exist_ok=True)
         path = directory / f"{self.episode_id}.json"
-        path.write_text(json.dumps(self.to_dict(), indent=2, default=str))
+        payload = json.dumps(self.to_dict(), indent=2, default=str)
+        fd, tmp_path = tempfile.mkstemp(dir=directory, prefix=f".{self.episode_id}.", suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w") as f:
+                f.write(payload)
+            os.replace(tmp_path, path)
+        except BaseException:
+            Path(tmp_path).unlink(missing_ok=True)
+            raise
         return path
