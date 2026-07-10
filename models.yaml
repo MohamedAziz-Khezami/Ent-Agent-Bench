@@ -36,10 +36,12 @@ models:
   # build with -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=120.
   #
   # supports_tool_calling reflects real, sourced findings, not assumptions:
-  #   - gpt-oss-20b: real, reproduced reports of llama.cpp specifically
-  #     failing to emit proper tool_call structures (reasons about tools in
-  #     plain text instead) across quantizations — set false so it defaults
-  #     to text_block instead of silently producing parse_error-heavy runs.
+  #   - gpt-oss-20b: earlier sourced reports (pre-dating this session's actual
+  #     llama.cpp build) described llama.cpp failing to emit proper tool_call
+  #     structures for this model — but a real, isolated /v1/chat/completions
+  #     call against this exact build (b9949) returned a clean, correctly
+  #     structured tool_calls response. Flipped to true based on that direct
+  #     evidence, overriding the earlier secondhand report.
   #   - qwen3-coder-30b-a3b: uses XML-style tool tags, not the Hermes JSON
   #     style llama.cpp's autoparser defaults to for most Qwen models —
   #     verify the actual tool_calls come back structured before trusting
@@ -102,7 +104,7 @@ models:
     model_id: ggml-org/gpt-oss-20b-GGUF:gpt-oss-20b-mxfp4.gguf  # confirmed — only file this repo has
     base_url: http://localhost:8085/v1
     api_key_env: null
-    supports_tool_calling: false  # see header note — real, reproduced llama.cpp-specific failures
+    supports_tool_calling: true  # see header note — confirmed via a real /v1/chat/completions call with tools=[...], overriding an earlier secondhand report
 
   - name: gemma4-26b-a4b-llamacpp-local
     backend: openai_compatible
