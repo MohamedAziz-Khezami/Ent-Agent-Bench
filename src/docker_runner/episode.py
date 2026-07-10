@@ -31,11 +31,22 @@ from __future__ import annotations
 
 import shutil
 import tempfile
+import time
 import uuid
 from pathlib import Path
 
 import docker
 import requests
+
+# A container that's genuinely dead will fail every retry too (these are
+# short/cheap, not a substitute for fixing an actual OOM/crash root cause) —
+# but a real transient blip (brief Docker networking hiccup, momentary
+# resource pressure under several simultaneous heavy containers) gets a
+# chance to self-heal instead of failing the whole episode on one refused
+# connection. Only retries connection-level failures (the container
+# unreachable at all); an actual non-2xx response from a live container is
+# a real application error, not something a retry would fix.
+_EXEC_RETRY_DELAYS_S = (0.5, 1.0, 2.0)
 
 _TOOL_SERVER_IMAGE = "ent-agent-bench/tool-server"
 _EXECUTOR_IMAGES = {
@@ -106,11 +117,21 @@ class Episode:
     def exec(self, code: str, lang: str | None = None) -> dict:
         if self.executor is None:
             raise RuntimeError(f"no executor container for surface={self.surface!r}")
-        resp = requests.post(f"{self._executor_url}/exec",
-                              json={"code": code, "lang": lang or self.surface},
-                              timeout=30)
-        resp.raise_for_status()
-        return resp.json()
+        last_error = None
+        for attempt, delay in enumerate((0.0, *_EXEC_RETRY_DELAYS_S)):
+            if delay:
+                time.sleep(delay)
+            try:
+                resp = requests.post(f"{self._executor_url}/exec",
+                                      json={"code": code, "lang": lang or self.surface},
+                                      timeout=60)
+                resp.raise_for_status()
+                return resp.json()
+            except requests.exceptions.ConnectionError as e:
+                last_error = e  # container unreachable — worth a retry, see module comment
+            except requests.exceptions.HTTPError:
+                raise  # a real response from a live container — not a connectivity issue, don't retry
+        raise last_error
 
     def teardown(self) -> None:
         for container in (self.executor, self.tool_server):

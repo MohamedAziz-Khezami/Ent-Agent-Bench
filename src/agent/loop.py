@@ -68,20 +68,40 @@ def _extract_code_fence(text: str, lang: str) -> str | None:
     return match.group(1).strip() if match else None
 
 
+_TOOL_CALL_RETRY_DELAYS_S = (0.5, 1.0, 2.0)
+
+
 def _call_crm_tool_directly(tool_server_url: str, name: str, args: dict):
     """json_mcp mode has no executor container — tool calls go straight to
     the tool-server's HTTP API. Returns (exec_result_shaped_dict, latency,
     value) — exec_result is shaped like an episode.exec() response so
-    EpisodeMeter.record_exec_result() can be reused unchanged."""
+    EpisodeMeter.record_exec_result() can be reused unchanged.
+
+    Retries connection-level failures (container momentarily unreachable —
+    same class of transient blip covered by Episode.exec()'s retry) before
+    falling back to recording it as a tool error; a real non-2xx response
+    from a live server is an application error, not something a retry
+    would fix, so that's not retried."""
     t0 = time.monotonic()
-    try:
-        resp = requests.post(f"{tool_server_url}/{name}", json=args, timeout=30)
-        resp.raise_for_status()
-        result = resp.json()
-    except requests.RequestException as e:
+    result = None
+    last_error = None
+    for delay in (0.0, *_TOOL_CALL_RETRY_DELAYS_S):
+        if delay:
+            time.sleep(delay)
+        try:
+            resp = requests.post(f"{tool_server_url}/{name}", json=args, timeout=30)
+            resp.raise_for_status()
+            result = resp.json()
+            break
+        except requests.exceptions.ConnectionError as e:
+            last_error = e
+        except requests.exceptions.HTTPError as e:
+            last_error = e
+            break  # a real response — don't retry, fall through to the error branch below
+    if result is None:
         latency = time.monotonic() - t0
         return ({"ok": False, "tool_calls": 1,
-                 "error": {"code": None, "name": type(e).__name__}}, latency, None)
+                 "error": {"code": None, "name": type(last_error).__name__}}, latency, None)
     latency = time.monotonic() - t0
     if not result["ok"]:
         err = result["error"]
