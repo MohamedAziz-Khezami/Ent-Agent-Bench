@@ -10,7 +10,7 @@ def test_loads_real_models_yaml():
     assert len(configs) == 12
     names = {c.name for c in configs}
     assert "gemma4-ollama-local" in names
-    assert "command-r-plus-104b-q8-llamacpp-local" in names
+    assert "llama3.1-70b-instruct-q8-llamacpp-local" in names
 
 
 def test_openai_compatible_config_defaults():

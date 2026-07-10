@@ -18,12 +18,12 @@ models:
   # unquantized file (suffix "-f16.gguf", or "-f32.gguf" where that's the
   # only full-precision file offered) instead of a bare repo name, so a
   # runtime pull can't silently grab a quantized default — EXCEPT the two
-  # 70B+ entries (qwen2.5-72b, command-r-plus-104b), which are a deliberate
+  # 70B+ entries (qwen2.5-72b, llama3.1-70b), which are a deliberate
   # 8-bit exception: full F16 at that size exceeds this workstation's 128GB
   # VRAM and would spill to slow system RAM, so those two are pinned to
   # Q8_0 GGUF files instead (near-lossless, fits fully in VRAM). Rough
   # F16/F32 footprints: 8B~16GB, 12-16B~24-32GB, 20B~40GB, 26-30B (MoE,
-  # stores ALL experts)~52-60GB, 72B~144GB (Q8_0~77GB instead), 104B~208GB
+  # stores ALL experts)~52-60GB, 70-72B~140-144GB (Q8_0~75-77GB instead)
   # (Q8_0~110GB instead). Only the filenames noted "(confirmed)" below were
   # checked against the actual HF file listing; the rest follow the same
   # bartowski/unsloth/ggml-org naming convention but haven't been
@@ -143,25 +143,23 @@ models:
     api_key_env: null
     supports_tool_calling: true  # native Hermes-style JSON tool calls, same family as the other Qwen2.5 entries above
 
-  - name: command-r-plus-104b-q8-llamacpp-local
+  - name: llama3.1-70b-instruct-q8-llamacpp-local
     backend: openai_compatible
-    # deliberate 8-bit exception (see header note): F16 at 104B is ~208GB,
-    # exceeds 128GB VRAM. Q8_0 (~110GB, confirmed: split into 4 standard
-    # parts llama.cpp auto-merges from the first) fits with ~18GB headroom
-    # for KV cache/context — tighter than the 72B entry, watch at long
-    # context lengths.
-    model_id: LiteLLMs/c4ai-command-r-plus-GGUF:Q8_0/Q8_0-00001-of-00004.gguf  # confirmed
+    # replaces command-r-plus-104b-q8 in this slot: Command R+ genuinely
+    # reasons about tools correctly but emits its own native Cohere
+    # "Action: ```json [...]```<|END_OF_TURN_TOKEN|>" format, which this
+    # llama.cpp build's parser never converts into structured tool_calls;
+    # forcing --chat-template command-r fixes the format but breaks EOS
+    # handling entirely (runaway generation past 2500+ tokens on a single
+    # trivial request). Llama-3.1-8B (same vendor/format family) already
+    # confirmed clean tool-calling on this exact build, so this is the
+    # lower-risk pick for the "very big" slot over chasing another
+    # untested 100B+ model. Technically <100B (70B), a deliberate
+    # trade-down from Command R+'s 104B given the above.
+    # 8-bit exception (see header note): F16 at 70B is ~140GB, exceeds
+    # 128GB VRAM. Q8_0 (~75GB, confirmed: split into 2 standard parts
+    # llama.cpp auto-merges from the first) fits comfortably in VRAM.
+    model_id: bartowski/Meta-Llama-3.1-70B-Instruct-GGUF:Meta-Llama-3.1-70B-Instruct-Q8_0/Meta-Llama-3.1-70B-Instruct-Q8_0-00001-of-00002.gguf  # confirmed
     base_url: http://localhost:8090/v1
     api_key_env: null
-    # real, reproduced finding: trained for tool use, and genuinely reasons
-    # about tools correctly (verified via a real trajectory — found the
-    # right entity, called the right actions), but emits its own native
-    # Cohere "Action: ```json [...]```<|END_OF_TURN_TOKEN|>" format, which
-    # this llama.cpp build's parser never converts into structured
-    # tool_calls (plain --jinja: correct/bounded output, tool_calls always
-    # empty). Forcing --chat-template command-r fixes the format but
-    # breaks EOS handling entirely (runaway generation past its own stop
-    # token — confirmed: single trivial request ran past 2500+ tokens
-    # before being killed). Neither config gives usable structured tool
-    # calls on this build. Defaults to text_block.
-    supports_tool_calling: false
+    supports_tool_calling: true  # same vendor/format as llama3.1-8b-instruct-llamacpp-local, confirmed clean tool-calling on this build — verify with a real curl test before trusting for this specific size/quant
