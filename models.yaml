@@ -125,14 +125,20 @@ models:
     model_id: bartowski/DeepSeek-Coder-V2-Lite-Instruct-GGUF:DeepSeek-Coder-V2-Lite-Instruct-f32.gguf/DeepSeek-Coder-V2-Lite-Instruct-f32-00001-of-00002.gguf  # confirmed — no f16, only f32 (split into 2 parts under a folder literally named "...-f32.gguf/"), llama.cpp auto-merges from the first
     base_url: http://localhost:8088/v1
     api_key_env: null
-    supports_tool_calling: true  # see header note — community template, verify before trusting
+    # real, reproduced finding (not an assumption): plain --jinja never
+    # populates tool_calls (prompt_tokens stays low, model ignores the
+    # tools entirely); forcing --chat-template deepseek breaks prompt
+    # construction outright (prompt_tokens: 3, garbled unrelated output) —
+    # same class of --chat-template-override bug seen on Mistral-7B and
+    # Qwen3-8B's earlier attempts on this build. Defaults to text_block.
+    supports_tool_calling: false
 
   - name: qwen2.5-72b-instruct-q8-llamacpp-local
     backend: openai_compatible
     # deliberate 8-bit exception (see header note): F16 at 72B is ~144GB,
     # exceeds 128GB VRAM. Q8_0 (~77GB, confirmed 77.26GB on HF) fits
     # entirely in VRAM across the 4x RTX 5090s at full GPU speed.
-    model_id: bartowski/Qwen2.5-72B-Instruct-GGUF:Qwen2.5-72B-Instruct-Q8_0.gguf  # confirmed
+    model_id: bartowski/Qwen2.5-72B-Instruct-GGUF:Qwen2.5-72B-Instruct-Q8_0/Qwen2.5-72B-Instruct-Q8_0-00001-of-00002.gguf  # confirmed — split into 2 parts under a subfolder, llama.cpp auto-merges from the first
     base_url: http://localhost:8089/v1
     api_key_env: null
     supports_tool_calling: true  # native Hermes-style JSON tool calls, same family as the other Qwen2.5 entries above
@@ -147,4 +153,15 @@ models:
     model_id: LiteLLMs/c4ai-command-r-plus-GGUF:Q8_0/Q8_0-00001-of-00004.gguf  # confirmed
     base_url: http://localhost:8090/v1
     api_key_env: null
-    supports_tool_calling: true  # trained specifically for zero-shot multi-step tool use
+    # real, reproduced finding: trained for tool use, and genuinely reasons
+    # about tools correctly (verified via a real trajectory — found the
+    # right entity, called the right actions), but emits its own native
+    # Cohere "Action: ```json [...]```<|END_OF_TURN_TOKEN|>" format, which
+    # this llama.cpp build's parser never converts into structured
+    # tool_calls (plain --jinja: correct/bounded output, tool_calls always
+    # empty). Forcing --chat-template command-r fixes the format but
+    # breaks EOS handling entirely (runaway generation past its own stop
+    # token — confirmed: single trivial request ran past 2500+ tokens
+    # before being killed). Neither config gives usable structured tool
+    # calls on this build. Defaults to text_block.
+    supports_tool_calling: false
