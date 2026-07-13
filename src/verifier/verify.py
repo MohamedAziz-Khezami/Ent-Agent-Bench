@@ -1,8 +1,4 @@
-# verify.py — scenario-agnostic grading of one finished episode against its
-# frozen task. Needs only a task dict (from tasks/frozen/*.json), a db diff
-# (db.state_diff() output), and the model's parsed final-answer fields —
-# no model, no Docker, no live episode required, so this is fully unit
-# testable against hand-crafted fixtures.
+# verify.py — scenario-agnostic grading of one finished episode against its frozen task.
 from __future__ import annotations
 
 

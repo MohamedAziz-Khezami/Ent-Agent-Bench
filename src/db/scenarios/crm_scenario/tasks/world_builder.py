@@ -1,24 +1,6 @@
 # world_builder.py — constructive world generation: decide the task first
 # (template params), then build a world that makes it valid BY DESIGN.
-# Background noise and the injected task kernel draw from the same pools.py
-# distributions, kernel rows get id slots interleaved uniformly into each
-# table's 1..N range, and background rows can never contaminate the kernel's
-# answer set (see conflict-prevention layers below). No rejection-retry over
-# whole worlds anywhere.
-#
-# Conflict prevention:
-#   1. reference partitioning — background rows only reference background
-#      parents (kernel entities like a task's rep can't accidentally own
-#      background deals), so query answer-sets are closed by construction.
-#   2. identity exclusion — kernel names/companies are removed from the
-#      background draw pools, so the query's entity description can't match
-#      a background row; `guards:` predicates additionally trigger a bounded
-#      per-row redraw for anything exclusion can't express.
-#   3. the audit (audit.py) re-checks every invariant on the finished world.
-#
-# Determinism: three named RNG sub-streams per task
-# (f"{seed}:params" / ":world" / ":inject") so editing how one phase draws
-# can never shift another phase's output.
+
 from __future__ import annotations
 
 import random

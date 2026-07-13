@@ -2,15 +2,7 @@
 // container. Kept fully separate from js_executor/ (its own Dockerfile,
 // its own dependency on the `typescript` npm package) since this is the
 // only executor that does real, semantic TypeScript type-checking.
-//
-// Unlike a plain ts.transpileModule() call (which only strips types and
-// checks syntax — a real type mismatch like `const x: number = "hello"`
-// would silently pass), this builds an in-memory ts.createProgram() with a
-// custom CompilerHost that serves the submitted code as a virtual file, so
-// program.getSemanticDiagnostics() can catch real type errors before the
-// code ever runs. Syntax errors and type errors are reported as distinct
-// error codes (`ts_syntax_error` vs `ts_type_error`) so the harness can tell
-// them apart.
+
 'use strict';
 const http = require('http');
 const vm = require('vm');

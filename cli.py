@@ -1,11 +1,4 @@
-# cli.py — argument parsing for main.py. Kept separate from the actual
-# benchmark execution logic so the CLI surface (flags, help text, defaults)
-# can be read/changed without touching how a run is actually driven.
-#
-# Two subcommands: `run` (drive episodes against the frozen task corpus) and
-# `generate-tasks` (freeze/refresh that corpus). Separate flag sets because
-# they're separate concerns — `run` cares about which episodes to execute,
-# `generate-tasks` only cares about how many tasks per tier.
+# cli.py — argument parsing for main.py.
 from __future__ import annotations
 
 import argparse

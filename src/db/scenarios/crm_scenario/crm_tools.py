@@ -1,5 +1,4 @@
-# crm_tools.py — CRM-specific tool implementations. All CRM domain logic
-# lives here; nothing about HOW an agent calls these (Python/JS/JSON) does.
+# crm_tools.py — CRM-specific tool implementations. All CRM domain logic lives here.
 from __future__ import annotations
 
 import sqlite3

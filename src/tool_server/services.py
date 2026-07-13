@@ -1,8 +1,4 @@
-# services.py — one named function per CRM tool. Each function calls the
-# matching impl.py function directly (no string-keyed lookup anywhere) and
-# has its own fully explicit, independent try/except — deliberately not
-# factored into a shared helper, so any one tool's error handling can be
-# changed without touching the other 16.
+# services.py — one named function per CRM tool.
 from __future__ import annotations
 
 from src.core.errors import DomainError

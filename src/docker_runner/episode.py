@@ -3,30 +3,7 @@
 # bind-mounted, starts the (untrusted) language executor on the same
 # network (skipped for the json_mcp surface, which has no executor at all),
 # and exposes exec()/teardown() for the agent loop to call.
-#
-# The world arrives as a FROZEN ARTIFACT (frozen/<tier>/task_XXX.sqlite,
-# built once by tasks/build_tasks.py) and is COPIED into the episode's tmp
-# dir — episodes mutate the copy, never the corpus, and reproducibility
-# doesn't depend on any generator code at runtime.
-#
-# CONFIRMED (empirically, with a real Docker daemon): the earlier plan to use
-# internal=True on the shared network was wrong. `internal=True` doesn't just
-# block outbound internet routing — it blocks Docker's inbound port-publishing
-# (DNAT) entirely, so `docker port` shows no host mapping at all and the host
-# can never reach a container on that network. Since the harness (on the
-# host) MUST reach both the tool-server and the executor via published
-# ports, `internal=True` is incompatible with this design and has been
-# removed below. Consequence: this network does NOT currently block the
-# executor container's outbound internet access — that property from the
-# plan is not enforced yet. The trust boundary that IS still fully intact
-# regardless: executor containers have zero filesystem access to src/db/,
-# src/core/, or the sqlite file (see docker/python-executor.Dockerfile,
-# docker/js-executor.Dockerfile, docker/ts-executor.Dockerfile — those
-# directories are simply never COPYed in), so untrusted code can only ever
-# reach data through the tool-server's validated HTTP API. True
-# internet-egress blocking would need
-# a different mechanism (e.g. a gateway/proxy container straddling two
-# networks, or per-container iptables rules) — out of scope unless asked for.
+
 from __future__ import annotations
 
 import shutil
@@ -47,15 +24,6 @@ from config import (
     RETRY_DELAYS_S as _EXEC_RETRY_DELAYS_S,
     TOOL_SERVER_IMAGE as _TOOL_SERVER_IMAGE,
 )
-
-# A container that's genuinely dead will fail every retry too (these are
-# short/cheap, not a substitute for fixing an actual OOM/crash root cause) —
-# but a real transient blip (brief Docker networking hiccup, momentary
-# resource pressure under several simultaneous heavy containers) gets a
-# chance to self-heal instead of failing the whole episode on one refused
-# connection. Only retries connection-level failures (the container
-# unreachable at all); an actual non-2xx response from a live container is
-# a real application error, not something a retry would fix.
 
 
 class Episode:

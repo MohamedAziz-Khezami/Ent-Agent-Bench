@@ -1,11 +1,4 @@
-// exec_server.js — the /exec endpoint running inside the JS executor
-// container. Plain JavaScript only — no TypeScript dependency at all, kept
-// fully separate from ts_executor/ so this image's dependency surface stays
-// minimal. Uses acorn (a JS-only parser, no type-checker) purely to find the
-// trailing bare-expression statement and rewrite it into an explicit
-// `return`, since an async function body doesn't auto-return like a raw vm
-// script does — this preserves the "trailing expression = the value"
-// convention exec_server.py and ts_executor/exec_server.js also implement.
+// exec_server.js — the /exec endpoint running inside the JS executor container.
 'use strict';
 const http = require('http');
 const vm = require('vm');

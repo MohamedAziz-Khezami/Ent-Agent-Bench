@@ -1,8 +1,4 @@
-# main.py — entrypoint. Reads models.yaml + the frozen task corpus, runs
-# every requested (model x surface x interaction_mode x task) combination
-# through agent/loop.py's run_episode(), and appends one CSV row per episode
-# as it completes (not buffered — a crash partway through a long run still
-# leaves you a usable partial CSV).
+# main.py — entrypoint.
 from __future__ import annotations
 
 import csv

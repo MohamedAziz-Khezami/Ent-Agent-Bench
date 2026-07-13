@@ -1,15 +1,4 @@
-// tools.d.ts — hand-written typed signatures for the 17 CRM tools, kept in
-// sync by hand with src/tool_server/models.py and src/db/scenarios/
-// crm_scenario/crm_db.py's table schemas. Used as an ambient declaration
-// file so ts.createProgram's real semantic type-checking (see
-// exec_server.js) catches wrong tool arguments, wrong enum values, AND
-// wrong field access on returned objects statically, not just as a runtime
-// error. This is the TS surface's own document — not shared with or
-// converted from the Python/JS surfaces' documentation. The interfaces and
-// method signatures below are real, working TypeScript (load-bearing for
-// type-checking); the comment above each method is prose documentation
-// only, matching the example+arguments+returns format used in
-// tools_python.pyi / tools_js.js.
+// tools.d.ts — handwritten typed signatures for the CRM tools
 
 interface Rep {
   id: number;

@@ -1,30 +1,14 @@
-# config.py — shared benchmark configuration. No secrets live here (or ever
-# should): models.yaml's api_key_env points at environment variables for
-# that. Every value below is a tunable knob, not something to hide, so this
-# file is meant to be committed and shared via the repo rather than kept in
-# a gitignored .env.
+# config.py — shared benchmark configuration.
 from __future__ import annotations
 
 # ── agent loop (src/agent/loop.py) ───────────────────────────────────────
-# Uniform across every surface on purpose (not n_functions + slack): json_mcp
-# needs ~1 turn per required tool call (no batching), code-mode can batch
-# many calls into one execute() turn — a per-task budget derived from
-# n_functions would silently give code-mode far more slack than json_mcp on
-# the same task. A fixed budget keeps the comparison fair; if json_mcp runs
-# out of room on a hard multi-action task, that's a real, comparable finding
-# (hit_turn_budget), not a harness artifact.
+
 TURN_BUDGET = 20
 
-# Fallback trajectory directory for standalone/test use of run_episode();
-# main.py overrides this per-run with a directory named after its own --out
-# CSV, so a run's CSV and its trajectories always live under matching names.
+
 TRAJECTORY_DIR = "results/trajectories"
 
-# Retry backoff (seconds) for a momentarily-unreachable container —
-# connection-level failures only, never a real HTTP error response from a
-# live container (that's an application error, not something a retry would
-# fix). Shared by both code-mode exec() calls and json_mcp's direct
-# tool-server calls.
+# Retry backoff (seconds) for a momentarily-unreachable container.
 RETRY_DELAYS_S = (0.5, 1.0, 2.0)
 
 # HTTP request timeouts (seconds)

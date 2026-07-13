@@ -1,10 +1,4 @@
-# server.py — the CRM tool-server. 17 hand-written FastAPI routes are the
-# single source of truth: read directly by the Python/JS/TS SDKs (plain
-# HTTP) and by fastapi-mcp (auto-generated MCP catalog at /mcp). The TS
-# executor's typed tool signatures (executors/ts_executor/tools.d.ts) are
-# hand-maintained separately, not generated from these routes. Each route
-# delegates straight to its matching services.* function; the actual SQL
-# lives in impl.py and never changed through any of this.
+# server.py — the CRM tool-server.
 from __future__ import annotations
 
 import argparse

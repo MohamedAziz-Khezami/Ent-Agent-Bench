@@ -1,9 +1,4 @@
-# tools_client.py — lives inside the Python executor container. The `Tools`
-# class is what generated code sees as `tools`. Genuinely synchronous —
-# requests.post() blocks by default, no background thread or event loop
-# needed. Every call is a real HTTP request to the tool-server, reached only
-# over the private per-episode Docker network (this container has no direct
-# database access at all).
+# tools_client.py — lives inside the Python executor container.
 from __future__ import annotations
 
 import requests

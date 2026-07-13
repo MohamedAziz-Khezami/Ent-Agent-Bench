@@ -1,9 +1,4 @@
-# client.py — one class per backend, both exposing the same
-# complete(messages, tools) -> ModelResponse shape, so the (not-yet-built)
-# agent loop never needs to know which backend it's talking to. Deliberately
-# dumb: no latency timing, no retry logic — the agent loop wraps the call
-# itself and feeds the timing into the meter, same separation of concerns
-# as episode.exec() not knowing about the meter either.
+
 from __future__ import annotations
 
 import json

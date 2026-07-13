@@ -1,25 +1,12 @@
-# meter.py — per-episode metrics collection. The (not-yet-built) agent loop
-# creates one EpisodeMeter per episode and calls its record_*/mark_* methods
-# as things happen (a model turn, a tool exec call, a parse failure), then
-# calls finalize(verify_result) once at the end to get one CSV row's worth
-# of data. No model, no Docker, no live episode needed to test this file —
-# record_* takes plain dicts/numbers, so it's fully unit testable.
+# meter.py — per-episode metrics collection.
 from __future__ import annotations
 
 import time
 
-# DomainError codes raised by src/core/errors.py (see impl.py/services.py) —
-# these reached the tool-server, got processed, and were legitimately
-# rejected, so they count as tool errors regardless of which surface made
-# the call.
+# DomainError codes raised by src/core/errors.py (see impl.py/services.py)
 _DOMAIN_ERROR_CODES = {"not_found", "duplicate_key", "malformed_filter"}
 
-# Exception class names indicating the call reached (or tried to reach) the
-# tool-server but failed at the transport/HTTP level rather than inside the
-# model's own code — e.g. requests.raise_for_status() raising HTTPError for
-# a non-2xx response. Observed empirically against the Python executor;
-# JS/TS transport failures haven't been exercised yet and may need adding
-# here once the agent loop generates real traffic.
+# Exception class names
 _TRANSPORT_ERROR_NAMES = {"HTTPError", "ConnectionError", "Timeout"}
 
 

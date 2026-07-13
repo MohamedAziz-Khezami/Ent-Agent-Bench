@@ -1,10 +1,4 @@
-# models.py — one hand-written Pydantic request model per CRM tool. These
-# models (their fields, types, and this module's docstrings via the routes
-# in server.py) are the source of truth for the tool catalog: read directly
-# by the SDKs (as plain JSON bodies) and by fastapi-mcp (auto-generated MCP
-# tool schemas). The TS executor's typed tool signatures
-# (executors/ts_executor/tools.d.ts) are hand-maintained separately and
-# must be kept in sync with these models by hand, not derived from them.
+# models.py — one hand-written Pydantic request model per CRM tool.
 from __future__ import annotations
 
 from typing import Literal, Optional

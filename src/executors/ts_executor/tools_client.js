@@ -1,8 +1,4 @@
-// tools_client.js — lives inside the TS executor container. `tools` is
-// what generated code sees. Genuinely asynchronous — fetch() is inherently
-// Promise-based in Node, so tool calls require a real `await`. Every call
-// is a real HTTP request to the tool-server, reached only over the private
-// per-episode Docker network (this container has no direct database access).
+// tools_client.js — lives inside the TS executor container.
 'use strict';
 
 // `counter` is a mutable {count} object exec_server.js resets before each
