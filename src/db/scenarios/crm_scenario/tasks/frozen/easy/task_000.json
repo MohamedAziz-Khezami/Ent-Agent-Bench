@@ -1,22 +1,13 @@
 {
-  "query": "Our overdue follow-up on the Soylent deal needs attention: mark it as done. Give me the id as followup_id.",
+  "query": "How many open deals does Dana Weber currently own? Answer with the count as n_deals.",
   "answer_keys": [
-    "followup_id"
+    "n_deals"
   ],
   "ground_truth": {
-    "followup_id": 1
+    "n_deals": 5
   },
   "expected_added": {},
-  "expected_changed": {
-    "followups": [
-      {
-        "id": 1,
-        "fields": {
-          "status": "done"
-        }
-      }
-    ]
-  },
+  "expected_changed": {},
   "exact_added_count": {},
   "forbidden": {
     "reps": [
@@ -46,6 +37,7 @@
     ],
     "followups": [
       "added",
+      "changed",
       "removed"
     ]
   },
@@ -54,5 +46,6 @@
   "task_id": "task_000",
   "world_seed": 1000,
   "difficulty": "easy",
-  "template": "act_on_a_followup"
+  "template": "count_open_deals",
+  "pattern": "single_query_aggregate"
 }

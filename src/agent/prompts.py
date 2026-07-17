@@ -92,8 +92,10 @@ def build_system_prompt(surface: str, interaction_mode: str, task: dict) -> str:
             "object is available with one method per CRM tool. Its available "
             f"methods:\n\n{tools_doc}\n\n"
             f"{_LOOKUP_DISCIPLINE} "
-            "When you have the answer, call final_answer with these fields: "
-            f"{answer_keys}."
+            "When you have the answer, call the separate final_answer tool "
+            f"with these fields: {answer_keys}. final_answer is its own tool "
+            "call, made the same way you call execute — it is not a method "
+            "on `tools` and must never be written inside your executed code."
         )
 
     # text_block

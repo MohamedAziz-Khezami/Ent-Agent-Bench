@@ -1,0 +1,74 @@
+# ──────────────────────────────────────────────────────────────────────
+# TASK TYPE: sum_pipeline_by_reps   (easy tier — read-only, no mutations)
+#
+# WHAT THE MODEL IS ASKED (example):
+#   "What's the combined value of all open deals owned by Grace Silva and
+#    Omar Haddad? Report the total as a plain number for total_value."
+#
+# WHAT IT TESTS:
+#   Independent parallel lookups merged into one number -- unlike every
+#   other template, the two sub-lookups (each rep's open deal) don't
+#   depend on each other at all, so they can be issued in any order or
+#   batched together in one program. The cleanest isolation of code-mode's
+#   "gather results from several independent calls" claim: no dependency
+#   chain, no group/iteration mechanics, no mutation to get wrong.
+#
+# HOW IT'S MADE VALID:
+#   Each rep's open-deal value is DECIDED first (value_a, value_b) and
+#   planted as that rep's only open deal; the answer is just their sum,
+#   fixed before the world exists. Each rep also gets a closed (won/lost)
+#   deal so "open" filtering is actually meaningful, not just "every deal
+#   this rep has."
+# ──────────────────────────────────────────────────────────────────────
+name: sum_pipeline_by_reps
+pattern: parallel_independent
+answer_keys: [total_value]
+n_functions: 3      # list_reps + 2 independent find_deals calls
+n_actions: 0
+
+# ── 1. dice rolls ────────────────────────────────────────────────────────
+params:
+  rep_a_name: {draw: person_name}
+  rep_b_name: {draw: person_name}
+  contact_a_name: {draw: person_name}
+  contact_b_name: {draw: person_name}
+  company_a: {draw: company}
+  company_b: {draw: company}
+  value_a: {value_between: [5000, 80000]}
+  value_b: {value_between: [5000, 80000]}
+  total_value: {expr: "value_a + value_b"}
+
+# ── 2. rows planted into the world ─────────────────────────────────────
+kernel:
+  - {ref: rep_a, table: reps, row: {name: "{rep_a_name}"}}
+  - {ref: contact_a, table: contacts, row: {name: "{contact_a_name}", company: "{company_a}"}}
+  - {ref: lead_a_open, table: leads, row: {contact_id: "@contact_a"}}
+  - {ref: deal_a_open, table: deals,
+     row: {lead_id: "@lead_a_open", rep_id: "@rep_a",
+           stage: {choice: [prospecting, qualification, proposal, negotiation, closing]},
+           value: "{value_a}"}}
+  - {ref: lead_a_closed, table: leads, row: {contact_id: "@contact_a"}}
+  - {ref: deal_a_closed, table: deals,
+     row: {lead_id: "@lead_a_closed", rep_id: "@rep_a", stage: {choice: [won, lost]}}}
+
+  - {ref: rep_b, table: reps, row: {name: "{rep_b_name}"}}
+  - {ref: contact_b, table: contacts, row: {name: "{contact_b_name}", company: "{company_b}"}}
+  - {ref: lead_b_open, table: leads, row: {contact_id: "@contact_b"}}
+  - {ref: deal_b_open, table: deals,
+     row: {lead_id: "@lead_b_open", rep_id: "@rep_b",
+           stage: {choice: [prospecting, qualification, proposal, negotiation, closing]},
+           value: "{value_b}"}}
+  - {ref: lead_b_closed, table: leads, row: {contact_id: "@contact_b"}}
+  - {ref: deal_b_closed, table: deals,
+     row: {lead_id: "@lead_b_closed", rep_id: "@rep_b", stage: {choice: [won, lost]}}}
+
+# ── 3. what a correct solution must have changed: NOTHING (read-only) ──
+effects: {}
+
+# ── 4. the correct answer ──────────────────────────────────────────────
+answer: {total_value: "{total_value}"}
+
+# ── 5. the query (fixed form) ────────────────────────────────────────
+query: >-
+  What's the combined value of all open deals owned by {rep_a_name} and
+  {rep_b_name}? Report the total as a plain number for total_value.

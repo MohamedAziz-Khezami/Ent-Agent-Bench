@@ -1,19 +1,19 @@
 {
-  "query": "For the overdue follow-up on the Cyberdyne deal: mark it as done, then push its due date to 2026-06-11. Answer with the followup_id you used.",
+  "query": "The new lead from Sam Cole has gone quiet \u2014 mark it as unqualified, then correct its source to inbound_email. Report lead_id.",
   "answer_keys": [
-    "followup_id"
+    "lead_id"
   ],
   "ground_truth": {
-    "followup_id": 14
+    "lead_id": 20
   },
   "expected_added": {},
   "expected_changed": {
-    "followups": [
+    "leads": [
       {
-        "id": 14,
+        "id": 20,
         "fields": {
-          "status": "done",
-          "due_date": "2026-06-11"
+          "status": "unqualified",
+          "source": "inbound_email"
         }
       }
     ]
@@ -32,7 +32,6 @@
     ],
     "leads": [
       "added",
-      "changed",
       "removed"
     ],
     "deals": [
@@ -47,6 +46,7 @@
     ],
     "followups": [
       "added",
+      "changed",
       "removed"
     ]
   },
@@ -55,5 +55,6 @@
   "task_id": "task_038",
   "world_seed": 1038,
   "difficulty": "medium",
-  "template": "act_on_a_followup"
+  "template": "act_on_a_lead",
+  "pattern": "single_record_act"
 }

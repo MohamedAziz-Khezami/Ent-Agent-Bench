@@ -3,8 +3,11 @@ from __future__ import annotations
 
 import time
 
-# DomainError codes raised by src/core/errors.py (see impl.py/services.py)
-_DOMAIN_ERROR_CODES = {"not_found", "duplicate_key", "malformed_filter"}
+# DomainError codes raised by src/core/errors.py (see impl.py/services.py),
+# plus the tool-server envelope's own error codes for a request-validation
+# failure or an unexpected exception — both are still "the tool-server said
+# something went wrong," the same category as not_found/duplicate_key/etc.
+_DOMAIN_ERROR_CODES = {"not_found", "duplicate_key", "malformed_filter", "validation_error", "internal_error"}
 
 # Exception class names
 _TRANSPORT_ERROR_NAMES = {"HTTPError", "ConnectionError", "Timeout"}

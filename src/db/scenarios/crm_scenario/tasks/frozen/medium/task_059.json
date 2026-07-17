@@ -1,19 +1,19 @@
 {
-  "query": "The overdue follow-up on the Acme deal has gone quiet \u2014 push its due date to 2026-06-04, then mark it as done. Report followup_id.",
+  "query": "The new lead from Kira Weber has gone quiet \u2014 set its score to 78, then mark it as qualified. Report lead_id.",
   "answer_keys": [
-    "followup_id"
+    "lead_id"
   ],
   "ground_truth": {
-    "followup_id": 7
+    "lead_id": 24
   },
   "expected_added": {},
   "expected_changed": {
-    "followups": [
+    "leads": [
       {
-        "id": 7,
+        "id": 24,
         "fields": {
-          "due_date": "2026-06-04",
-          "status": "done"
+          "score": 78,
+          "status": "qualified"
         }
       }
     ]
@@ -32,7 +32,6 @@
     ],
     "leads": [
       "added",
-      "changed",
       "removed"
     ],
     "deals": [
@@ -47,6 +46,7 @@
     ],
     "followups": [
       "added",
+      "changed",
       "removed"
     ]
   },
@@ -55,5 +55,6 @@
   "task_id": "task_059",
   "world_seed": 1059,
   "difficulty": "medium",
-  "template": "act_on_a_followup"
+  "template": "act_on_a_lead",
+  "pattern": "single_record_act"
 }

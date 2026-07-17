@@ -7,10 +7,11 @@ from src.llm_clients.registry import ModelConfig, load_model_registry
 
 def test_loads_real_models_yaml():
     configs = load_model_registry("models.yaml")
-    assert len(configs) == 7
+    assert len(configs) == 11
     names = {c.name for c in configs}
     assert "gemma4-12b-llamacpp-local" in names
     assert "qwen2.5-72b-instruct-q8-llamacpp-local" in names
+    assert "qwen3.6-35b-a3b-llamacpp-local" in names
 
 
 def test_openai_compatible_config_defaults():

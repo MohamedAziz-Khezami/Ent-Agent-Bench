@@ -1,32 +1,24 @@
 {
-  "query": "The prospecting deal with Wonka has gone quiet \u2014 move it to the closing stage, then schedule a follow-up for 2026-06-08 with the note 'send recap'. Report deal_id.",
+  "query": "Can you handle the overdue follow-up on the Wonka deal? mark it as done, then push its due date to 2026-06-11. I need the followup_id back.",
   "answer_keys": [
-    "deal_id"
+    "followup_id"
   ],
   "ground_truth": {
-    "deal_id": 35
+    "followup_id": 17
   },
-  "expected_added": {
+  "expected_added": {},
+  "expected_changed": {
     "followups": [
       {
-        "deal_id": 35,
-        "due_date": "2026-06-08"
-      }
-    ]
-  },
-  "expected_changed": {
-    "deals": [
-      {
-        "id": 35,
+        "id": 17,
         "fields": {
-          "stage": "closing"
+          "status": "done",
+          "due_date": "2026-06-11"
         }
       }
     ]
   },
-  "exact_added_count": {
-    "followups": 1
-  },
+  "exact_added_count": {},
   "forbidden": {
     "reps": [
       "added",
@@ -45,6 +37,7 @@
     ],
     "deals": [
       "added",
+      "changed",
       "removed"
     ],
     "activities": [
@@ -53,7 +46,7 @@
       "removed"
     ],
     "followups": [
-      "changed",
+      "added",
       "removed"
     ]
   },
@@ -62,5 +55,6 @@
   "task_id": "task_055",
   "world_seed": 1055,
   "difficulty": "medium",
-  "template": "act_on_a_deal"
+  "template": "act_on_a_followup",
+  "pattern": "single_record_act"
 }

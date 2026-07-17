@@ -29,6 +29,11 @@ def test_categorize_error_domain_codes():
     assert _categorize_error({"code": "malformed_filter", "name": "Error"}) == "tool"
 
 
+def test_categorize_error_validation_and_internal_codes():
+    assert _categorize_error({"code": "validation_error", "name": "RuntimeError"}) == "tool"
+    assert _categorize_error({"code": "internal_error", "name": "RuntimeError"}) == "tool"
+
+
 def test_categorize_error_native_syntax_error():
     assert _categorize_error({"code": None, "name": "SyntaxError"}) == "syntax"
 

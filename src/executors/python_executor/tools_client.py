@@ -16,12 +16,11 @@ class Tools:
         def call(**kwargs):
             self.call_count += 1
             resp = requests.post(f"{self.base_url}/{name}", json=kwargs, timeout=30)
-            resp.raise_for_status()
-            result = resp.json()
-            if not result["ok"]:
+            result = resp.json()  # every response is HTTP 200; success/failure is signaled by result["success"]
+            if not result["success"]:
                 err = result["error"]
-                exc = RuntimeError(f"{err['code']}: {err['message']}")
+                exc = RuntimeError(f"{err['code']}: {err.get('technical_message')}")
                 exc.code = err["code"]  # was previously lost, only baked into the message text
                 raise exc
-            return result["result"]
+            return result["data"]
         return call

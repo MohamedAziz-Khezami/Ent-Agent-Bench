@@ -1,10 +1,10 @@
 {
-  "query": "How many open deals does Hugo Ruiz currently own? Answer with the count as n_deals.",
+  "query": "What's the combined value of all open deals owned by Hugo Ruiz and Carol Nakamura? Report the total as a plain number for total_value.",
   "answer_keys": [
-    "n_deals"
+    "total_value"
   ],
   "ground_truth": {
-    "n_deals": 5
+    "total_value": 110000.0
   },
   "expected_added": {},
   "expected_changed": {},
@@ -41,10 +41,11 @@
       "removed"
     ]
   },
-  "n_functions": 2,
-  "n_actions": 1,
+  "n_functions": 3,
+  "n_actions": 0,
   "task_id": "task_007",
   "world_seed": 1007,
   "difficulty": "easy",
-  "template": "count_open_deals"
+  "template": "sum_pipeline_by_reps",
+  "pattern": "parallel_independent"
 }

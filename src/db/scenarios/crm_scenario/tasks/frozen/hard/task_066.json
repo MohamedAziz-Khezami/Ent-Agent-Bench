@@ -69,5 +69,6 @@
   "task_id": "task_066",
   "world_seed": 1066,
   "difficulty": "hard",
-  "template": "act_on_a_deal"
+  "template": "act_on_a_deal",
+  "pattern": "single_record_act"
 }

@@ -15,13 +15,13 @@ function makeToolsProxy(baseUrl) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(args || {}),
         });
-        const result = await resp.json();
-        if (!result.ok) {
-          const err = new Error(result.error.message);
+        const result = await resp.json(); // every response is HTTP 200; success/failure is signaled by result.success
+        if (!result.success) {
+          const err = new Error(`${result.error.code}: ${result.error.technical_message ?? ''}`);
           err.code = result.error.code;
           throw err;
         }
-        return result.result;
+        return result.data;
       };
     },
   });

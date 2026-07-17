@@ -1,14 +1,23 @@
 {
-  "query": "How many open deals does Bob Tan currently own? Answer with the count as n_deals.",
+  "query": "Please schedule a follow-up for 2026-06-04 with the note 'send recap' on the qualification deal with Acme. Report the deal_id.",
   "answer_keys": [
-    "n_deals"
+    "deal_id"
   ],
   "ground_truth": {
-    "n_deals": 4
+    "deal_id": 33
   },
-  "expected_added": {},
+  "expected_added": {
+    "followups": [
+      {
+        "deal_id": 33,
+        "due_date": "2026-06-04"
+      }
+    ]
+  },
   "expected_changed": {},
-  "exact_added_count": {},
+  "exact_added_count": {
+    "followups": 1
+  },
   "forbidden": {
     "reps": [
       "added",
@@ -36,7 +45,6 @@
       "removed"
     ],
     "followups": [
-      "added",
       "changed",
       "removed"
     ]
@@ -46,5 +54,6 @@
   "task_id": "task_024",
   "world_seed": 1024,
   "difficulty": "easy",
-  "template": "count_open_deals"
+  "template": "act_on_a_deal",
+  "pattern": "single_record_act"
 }

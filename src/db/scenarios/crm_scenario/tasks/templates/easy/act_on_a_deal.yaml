@@ -16,6 +16,7 @@
 #   always in prospecting/qualification/proposal — a no-op is impossible.
 # ──────────────────────────────────────────────────────────────────────
 name: act_on_a_deal
+pattern: single_record_act
 answer_keys: [deal_id]
 n_functions: 2      # 1 lookup + 1 action
 n_actions: 1

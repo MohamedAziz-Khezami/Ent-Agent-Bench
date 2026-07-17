@@ -37,7 +37,8 @@ def build_all(n_per_tier: int = TASKS_PER_TIER, seed_base: int = SEED_BASE, verb
             task = wb.build_task(task_seed, template, out_dir / f"{task_id}.sqlite", menus)
 
             task.update({"task_id": task_id, "world_seed": task_seed,
-                          "difficulty": tier, "template": template_name})
+                          "difficulty": tier, "template": template_name,
+                          "pattern": template["pattern"]})
 
             (out_dir / f"{task_id}.json").write_text(
                 json.dumps(task, indent=2), encoding="utf-8")

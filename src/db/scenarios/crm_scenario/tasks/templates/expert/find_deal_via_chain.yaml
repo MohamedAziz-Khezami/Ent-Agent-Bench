@@ -18,6 +18,7 @@
 #   action targets closing only (the anchor is already in negotiation).
 # ──────────────────────────────────────────────────────────────────────
 name: find_deal_via_chain
+pattern: dependent_chain
 answer_keys: [deal_id]
 n_functions: 4      # 3 lookup hops (contact -> lead -> deal) + 1 action
 n_actions: 1

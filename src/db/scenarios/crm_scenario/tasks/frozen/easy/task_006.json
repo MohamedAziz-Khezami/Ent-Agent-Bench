@@ -1,22 +1,13 @@
 {
-  "query": "Our overdue follow-up on the Cyberdyne deal needs attention: push its due date to 2026-06-11. Give me the id as followup_id.",
+  "query": "How many open deals does Sam Lee currently own? Answer with the count as n_deals.",
   "answer_keys": [
-    "followup_id"
+    "n_deals"
   ],
   "ground_truth": {
-    "followup_id": 4
+    "n_deals": 6
   },
   "expected_added": {},
-  "expected_changed": {
-    "followups": [
-      {
-        "id": 4,
-        "fields": {
-          "due_date": "2026-06-11"
-        }
-      }
-    ]
-  },
+  "expected_changed": {},
   "exact_added_count": {},
   "forbidden": {
     "reps": [
@@ -46,6 +37,7 @@
     ],
     "followups": [
       "added",
+      "changed",
       "removed"
     ]
   },
@@ -54,5 +46,6 @@
   "task_id": "task_006",
   "world_seed": 1006,
   "difficulty": "easy",
-  "template": "act_on_a_followup"
+  "template": "count_open_deals",
+  "pattern": "single_query_aggregate"
 }

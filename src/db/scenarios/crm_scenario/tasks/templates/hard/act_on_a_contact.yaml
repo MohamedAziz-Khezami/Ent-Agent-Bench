@@ -19,6 +19,7 @@
 #   phone suffix 5000-9999.
 # ──────────────────────────────────────────────────────────────────────
 name: act_on_a_contact
+pattern: single_record_act
 answer_keys: [contact_id]
 n_functions: 4      # 1 lookup + 3 actions
 n_actions: 3

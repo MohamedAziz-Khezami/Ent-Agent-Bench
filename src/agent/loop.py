@@ -66,10 +66,10 @@ def _call_crm_tool_directly(tool_server_url: str, name: str, args: dict):
     EpisodeMeter.record_exec_result() can be reused unchanged.
 
     Retries connection-level failures (container momentarily unreachable —
-    same class of transient blip covered by Episode.exec()'s retry) before
-    falling back to recording it as a tool error; a real non-2xx response
-    from a live server is an application error, not something a retry
-    would fix, so that's not retried."""
+    same class of transient blip covered by Episode.exec()'s retry); every
+    real response from a live server is HTTP 200 with success/failure
+    signaled by the body's "success" field, so that's not a retryable
+    condition, only a ConnectionError/timeout is."""
     t0 = time.monotonic()
     result = None
     last_error = None
@@ -78,24 +78,20 @@ def _call_crm_tool_directly(tool_server_url: str, name: str, args: dict):
             time.sleep(delay)
         try:
             resp = requests.post(f"{tool_server_url}/{name}", json=args, timeout=TOOL_CALL_HTTP_TIMEOUT_S)
-            resp.raise_for_status()
             result = resp.json()
             break
         except requests.exceptions.ConnectionError as e:
             last_error = e
-        except requests.exceptions.HTTPError as e:
-            last_error = e
-            break  # a real response — don't retry, fall through to the error branch below
     if result is None:
         latency = time.monotonic() - t0
         return ({"ok": False, "tool_calls": 1,
                  "error": {"code": None, "name": type(last_error).__name__}}, latency, None)
     latency = time.monotonic() - t0
-    if not result["ok"]:
+    if not result["success"]:
         err = result["error"]
         return ({"ok": False, "tool_calls": 1,
                  "error": {"code": err["code"], "name": None}}, latency, None)
-    return ({"ok": True, "tool_calls": 1, "error": None}, latency, result["result"])
+    return ({"ok": True, "tool_calls": 1, "error": None}, latency, result["data"])
 
 
 def _infra_error_result(message: str) -> dict:

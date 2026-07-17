@@ -56,5 +56,6 @@
   "task_id": "task_089",
   "world_seed": 1089,
   "difficulty": "hard",
-  "template": "act_on_a_lead"
+  "template": "act_on_a_lead",
+  "pattern": "single_record_act"
 }

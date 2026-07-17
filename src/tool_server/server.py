@@ -2,20 +2,26 @@
 from __future__ import annotations
 
 import argparse
+import logging
 import sqlite3
 from contextlib import asynccontextmanager
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi_mcp import FastApiMCP
 
 from src.tool_server import services
+from src.tool_server.envelope import APIResponse
 from src.tool_server.models import (
     CreateContactArgs, CreateDealArgs, CreateLeadArgs, FindContactsArgs,
     FindDealsArgs, FindLeadsArgs, GetActivitiesArgs, GetByIdArgs,
     GetFollowupsArgs, LogActivityArgs, ScheduleFollowupArgs, UpdateContactArgs,
     UpdateDealArgs, UpdateFollowupArgs, UpdateLeadArgs,
 )
+
+logger = logging.getLogger("tool_server")
 
 _conn: sqlite3.Connection | None = None
 
@@ -31,6 +37,24 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="CRM Tool Server", lifespan=lifespan)
+
+
+@app.exception_handler(RequestValidationError)
+async def handle_validation_error(request: Request, exc: RequestValidationError):
+    details = []
+    for err in exc.errors():
+        loc = ".".join(str(p) for p in err["loc"] if p != "body")
+        details.append(f"{loc or '<root>'}: {err['msg']} (type={err['type']})")
+    technical_message = "; ".join(details) or "request validation failed"
+    resp = APIResponse.fail(code="validation_error", technical_message=technical_message)
+    return JSONResponse(status_code=200, content=resp.model_dump())
+
+
+@app.exception_handler(Exception)
+async def handle_unexpected_error(request: Request, exc: Exception):
+    logger.exception("unhandled exception in %s", request.url.path)
+    resp = APIResponse.fail(code="internal_error", technical_message=f"{type(exc).__name__}: {exc}")
+    return JSONResponse(status_code=200, content=resp.model_dump())
 
 
 @app.post("/list_reps", operation_id="list_reps")

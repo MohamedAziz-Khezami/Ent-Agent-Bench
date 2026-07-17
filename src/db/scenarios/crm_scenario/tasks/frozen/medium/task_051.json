@@ -1,24 +1,31 @@
 {
-  "query": "Can you handle the new lead from Carol Mo? set its score to 85, then mark it as unqualified. I need the lead_id back.",
+  "query": "For the qualification deal with Vandelay: log a email about 'pricing' on it, then schedule a follow-up for 2026-06-08 with the note 'confirm terms'. Answer with the deal_id you used.",
   "answer_keys": [
-    "lead_id"
+    "deal_id"
   ],
   "ground_truth": {
-    "lead_id": 41
+    "deal_id": 32
   },
-  "expected_added": {},
-  "expected_changed": {
-    "leads": [
+  "expected_added": {
+    "activities": [
       {
-        "id": 41,
-        "fields": {
-          "score": 85,
-          "status": "unqualified"
-        }
+        "deal_id": 32,
+        "type": "email",
+        "subject": "pricing"
+      }
+    ],
+    "followups": [
+      {
+        "deal_id": 32,
+        "due_date": "2026-06-08"
       }
     ]
   },
-  "exact_added_count": {},
+  "expected_changed": {},
+  "exact_added_count": {
+    "activities": 1,
+    "followups": 1
+  },
   "forbidden": {
     "reps": [
       "added",
@@ -32,6 +39,7 @@
     ],
     "leads": [
       "added",
+      "changed",
       "removed"
     ],
     "deals": [
@@ -40,12 +48,10 @@
       "removed"
     ],
     "activities": [
-      "added",
       "changed",
       "removed"
     ],
     "followups": [
-      "added",
       "changed",
       "removed"
     ]
@@ -55,5 +61,6 @@
   "task_id": "task_051",
   "world_seed": 1051,
   "difficulty": "medium",
-  "template": "act_on_a_lead"
+  "template": "act_on_a_deal",
+  "pattern": "single_record_act"
 }

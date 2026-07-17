@@ -1,19 +1,19 @@
 {
-  "query": "The overdue follow-up on the Vandelay deal has gone quiet \u2014 mark it as done, then push its due date to 2026-06-06. Report followup_id.",
+  "query": "For the new lead from Omar Okafor: mark it as qualified, then set its score to 70. Answer with the lead_id you used.",
   "answer_keys": [
-    "followup_id"
+    "lead_id"
   ],
   "ground_truth": {
-    "followup_id": 16
+    "lead_id": 12
   },
   "expected_added": {},
   "expected_changed": {
-    "followups": [
+    "leads": [
       {
-        "id": 16,
+        "id": 12,
         "fields": {
-          "status": "done",
-          "due_date": "2026-06-06"
+          "status": "qualified",
+          "score": 70
         }
       }
     ]
@@ -32,7 +32,6 @@
     ],
     "leads": [
       "added",
-      "changed",
       "removed"
     ],
     "deals": [
@@ -47,6 +46,7 @@
     ],
     "followups": [
       "added",
+      "changed",
       "removed"
     ]
   },
@@ -55,5 +55,6 @@
   "task_id": "task_033",
   "world_seed": 1033,
   "difficulty": "medium",
-  "template": "act_on_a_followup"
+  "template": "act_on_a_lead",
+  "pattern": "single_record_act"
 }

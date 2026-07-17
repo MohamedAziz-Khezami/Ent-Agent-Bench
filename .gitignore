@@ -15,3 +15,6 @@ env/
 env
 
 Bencmark_harness/
+
+# benchmark run output (trajectories, logs) -- regeneratable, not source
+results/

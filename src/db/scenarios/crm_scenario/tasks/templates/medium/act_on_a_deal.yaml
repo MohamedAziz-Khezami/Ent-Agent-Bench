@@ -18,6 +18,7 @@
 #   pools — a no-op change is impossible.
 # ──────────────────────────────────────────────────────────────────────
 name: act_on_a_deal
+pattern: single_record_act
 answer_keys: [deal_id]
 n_functions: 3      # 1 lookup + 2 actions
 n_actions: 2

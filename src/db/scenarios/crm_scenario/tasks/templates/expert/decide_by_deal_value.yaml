@@ -18,6 +18,7 @@
 #   never be generated, so no margin check is needed.
 # ──────────────────────────────────────────────────────────────────────
 name: decide_by_deal_value
+pattern: conditional_branch
 answer_keys: [deal_id]
 n_functions: 2      # 1 lookup + 1 action (whichever branch is true)
 n_actions: 1

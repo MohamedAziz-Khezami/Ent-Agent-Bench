@@ -1,11 +1,11 @@
-cheater baseline over 91 id-answer tasks (29 count-answer tasks skipped)
-  max_id: 2/91 = 2.2%
-  newest_created_at: 2/91 = 2.2%
-    easy     max_id: 1/20
-    easy     newest_created_at: 0/20
+cheater baseline over 74 id-answer tasks (46 count-answer tasks skipped)
+  max_id: 3/74 = 4.1%
+  newest_created_at: 2/74 = 2.7%
+    easy     max_id: 1/14
+    easy     newest_created_at: 0/14
     expert   max_id: 1/11
     expert   newest_created_at: 0/11
     hard     max_id: 0/30
     hard     newest_created_at: 2/30
-    medium   max_id: 0/30
-    medium   newest_created_at: 0/30
+    medium   max_id: 1/19
+    medium   newest_created_at: 0/19

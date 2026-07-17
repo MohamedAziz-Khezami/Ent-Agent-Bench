@@ -17,6 +17,7 @@
 #   answer.
 # ──────────────────────────────────────────────────────────────────────
 name: count_open_deals
+pattern: single_query_aggregate
 answer_keys: [n_deals]
 n_functions: 2      # 1 lookup + 1 count/answer step
 n_actions: 1

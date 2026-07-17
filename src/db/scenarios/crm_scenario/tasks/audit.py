@@ -247,7 +247,7 @@ def check_rebuild_drift(task: dict, world: Path, tmp: Path) -> str | None:
     rebuilt = wb.build_task(task["world_seed"], template, rebuilt_path)
 
     frozen_contract = {k: v for k, v in task.items()
-                       if k not in ("task_id", "world_seed", "difficulty", "template", "world_db")}
+                       if k not in ("task_id", "world_seed", "difficulty", "template", "pattern", "world_db")}
     if rebuilt != frozen_contract:
         return "rebuilt task contract differs from frozen JSON (generator drift)"
 

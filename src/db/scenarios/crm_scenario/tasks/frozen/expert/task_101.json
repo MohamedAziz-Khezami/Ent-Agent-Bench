@@ -54,5 +54,6 @@
   "task_id": "task_101",
   "world_seed": 1101,
   "difficulty": "expert",
-  "template": "find_deal_via_chain"
+  "template": "find_deal_via_chain",
+  "pattern": "dependent_chain"
 }

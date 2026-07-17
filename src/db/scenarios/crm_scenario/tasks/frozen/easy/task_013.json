@@ -1,23 +1,23 @@
 {
-  "query": "Our prospecting deal with Acme needs attention: schedule a follow-up for 2026-06-06 with the note 'send recap'. Give me the id as deal_id.",
+  "query": "Quick task: for the overdue follow-up on the Acme deal, mark it as done. Answer with followup_id.",
   "answer_keys": [
-    "deal_id"
+    "followup_id"
   ],
   "ground_truth": {
-    "deal_id": 36
+    "followup_id": 13
   },
-  "expected_added": {
+  "expected_added": {},
+  "expected_changed": {
     "followups": [
       {
-        "deal_id": 36,
-        "due_date": "2026-06-06"
+        "id": 13,
+        "fields": {
+          "status": "done"
+        }
       }
     ]
   },
-  "expected_changed": {},
-  "exact_added_count": {
-    "followups": 1
-  },
+  "exact_added_count": {},
   "forbidden": {
     "reps": [
       "added",
@@ -45,7 +45,7 @@
       "removed"
     ],
     "followups": [
-      "changed",
+      "added",
       "removed"
     ]
   },
@@ -54,5 +54,6 @@
   "task_id": "task_013",
   "world_seed": 1013,
   "difficulty": "easy",
-  "template": "act_on_a_deal"
+  "template": "act_on_a_followup",
+  "pattern": "single_record_act"
 }

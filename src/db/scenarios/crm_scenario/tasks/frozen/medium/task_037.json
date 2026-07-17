@@ -1,23 +1,13 @@
 {
-  "query": "Can you handle the new lead from Noor Nakamura? correct its source to referral, then set its score to 80. I need the lead_id back.",
+  "query": "Among our reps, sum the open pipeline for Rosa Diaz and Femi Haddad only -- do not include Liam Iversen, even though I'm mentioning them here. Report the total as a plain number for total_value.",
   "answer_keys": [
-    "lead_id"
+    "total_value"
   ],
   "ground_truth": {
-    "lead_id": 10
+    "total_value": 71500.0
   },
   "expected_added": {},
-  "expected_changed": {
-    "leads": [
-      {
-        "id": 10,
-        "fields": {
-          "source": "referral",
-          "score": 80
-        }
-      }
-    ]
-  },
+  "expected_changed": {},
   "exact_added_count": {},
   "forbidden": {
     "reps": [
@@ -32,6 +22,7 @@
     ],
     "leads": [
       "added",
+      "changed",
       "removed"
     ],
     "deals": [
@@ -51,9 +42,10 @@
     ]
   },
   "n_functions": 3,
-  "n_actions": 2,
+  "n_actions": 0,
   "task_id": "task_037",
   "world_seed": 1037,
   "difficulty": "medium",
-  "template": "act_on_a_lead"
+  "template": "sum_pipeline_with_distractor",
+  "pattern": "parallel_independent"
 }

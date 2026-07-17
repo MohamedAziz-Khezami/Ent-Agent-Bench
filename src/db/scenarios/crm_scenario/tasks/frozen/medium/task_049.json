@@ -1,19 +1,19 @@
 {
-  "query": "The overdue follow-up on the Wonka deal has gone quiet \u2014 mark it as done, then push its due date to 2026-06-11. Report followup_id.",
+  "query": "The new lead from Alice Moreau has gone quiet \u2014 mark it as unqualified, then correct its source to event. Report lead_id.",
   "answer_keys": [
-    "followup_id"
+    "lead_id"
   ],
   "ground_truth": {
-    "followup_id": 11
+    "lead_id": 33
   },
   "expected_added": {},
   "expected_changed": {
-    "followups": [
+    "leads": [
       {
-        "id": 11,
+        "id": 33,
         "fields": {
-          "status": "done",
-          "due_date": "2026-06-11"
+          "status": "unqualified",
+          "source": "event"
         }
       }
     ]
@@ -32,7 +32,6 @@
     ],
     "leads": [
       "added",
-      "changed",
       "removed"
     ],
     "deals": [
@@ -47,6 +46,7 @@
     ],
     "followups": [
       "added",
+      "changed",
       "removed"
     ]
   },
@@ -55,5 +55,6 @@
   "task_id": "task_049",
   "world_seed": 1049,
   "difficulty": "medium",
-  "template": "act_on_a_followup"
+  "template": "act_on_a_lead",
+  "pattern": "single_record_act"
 }

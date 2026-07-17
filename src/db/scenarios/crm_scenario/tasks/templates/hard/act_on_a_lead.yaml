@@ -16,6 +16,7 @@
 #   vs referral/event/inbound_email.
 # ──────────────────────────────────────────────────────────────────────
 name: act_on_a_lead
+pattern: single_record_act
 answer_keys: [lead_id]
 n_functions: 4      # 1 lookup + 3 actions
 n_actions: 3

@@ -1,32 +1,24 @@
 {
-  "query": "The qualification deal with Cyberdyne has gone quiet \u2014 move it to the closing stage, then schedule a follow-up for 2026-06-08 with the note 'confirm terms'. Report deal_id.",
+  "query": "The overdue follow-up on the Cyberdyne deal has gone quiet \u2014 push its due date to 2026-06-06, then mark it as done. Report followup_id.",
   "answer_keys": [
-    "deal_id"
+    "followup_id"
   ],
   "ground_truth": {
-    "deal_id": 6
+    "followup_id": 3
   },
-  "expected_added": {
+  "expected_added": {},
+  "expected_changed": {
     "followups": [
       {
-        "deal_id": 6,
-        "due_date": "2026-06-08"
-      }
-    ]
-  },
-  "expected_changed": {
-    "deals": [
-      {
-        "id": 6,
+        "id": 3,
         "fields": {
-          "stage": "closing"
+          "due_date": "2026-06-06",
+          "status": "done"
         }
       }
     ]
   },
-  "exact_added_count": {
-    "followups": 1
-  },
+  "exact_added_count": {},
   "forbidden": {
     "reps": [
       "added",
@@ -45,6 +37,7 @@
     ],
     "deals": [
       "added",
+      "changed",
       "removed"
     ],
     "activities": [
@@ -53,7 +46,7 @@
       "removed"
     ],
     "followups": [
-      "changed",
+      "added",
       "removed"
     ]
   },
@@ -62,5 +55,6 @@
   "task_id": "task_047",
   "world_seed": 1047,
   "difficulty": "medium",
-  "template": "act_on_a_deal"
+  "template": "act_on_a_followup",
+  "pattern": "single_record_act"
 }

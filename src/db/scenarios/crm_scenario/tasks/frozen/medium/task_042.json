@@ -1,19 +1,19 @@
 {
-  "query": "Can you handle the overdue follow-up on the Wonka deal? push its due date to 2026-06-08, then mark it as done. I need the followup_id back.",
+  "query": "Can you handle the new lead from Iris Mo? set its score to 76, then mark it as unqualified. I need the lead_id back.",
   "answer_keys": [
-    "followup_id"
+    "lead_id"
   ],
   "ground_truth": {
-    "followup_id": 10
+    "lead_id": 38
   },
   "expected_added": {},
   "expected_changed": {
-    "followups": [
+    "leads": [
       {
-        "id": 10,
+        "id": 38,
         "fields": {
-          "due_date": "2026-06-08",
-          "status": "done"
+          "score": 76,
+          "status": "unqualified"
         }
       }
     ]
@@ -32,7 +32,6 @@
     ],
     "leads": [
       "added",
-      "changed",
       "removed"
     ],
     "deals": [
@@ -47,6 +46,7 @@
     ],
     "followups": [
       "added",
+      "changed",
       "removed"
     ]
   },
@@ -55,5 +55,6 @@
   "task_id": "task_042",
   "world_seed": 1042,
   "difficulty": "medium",
-  "template": "act_on_a_followup"
+  "template": "act_on_a_lead",
+  "pattern": "single_record_act"
 }

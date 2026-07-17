@@ -1,32 +1,24 @@
 {
-  "query": "The qualification deal with Acme has gone quiet \u2014 schedule a follow-up for 2026-06-11 with the note 'confirm terms', then move it to the closing stage. Report deal_id.",
+  "query": "The overdue follow-up on the Acme deal has gone quiet \u2014 push its due date to 2026-06-11, then mark it as done. Report followup_id.",
   "answer_keys": [
-    "deal_id"
+    "followup_id"
   ],
   "ground_truth": {
-    "deal_id": 14
+    "followup_id": 8
   },
-  "expected_added": {
+  "expected_added": {},
+  "expected_changed": {
     "followups": [
       {
-        "deal_id": 14,
-        "due_date": "2026-06-11"
-      }
-    ]
-  },
-  "expected_changed": {
-    "deals": [
-      {
-        "id": 14,
+        "id": 8,
         "fields": {
-          "stage": "closing"
+          "due_date": "2026-06-11",
+          "status": "done"
         }
       }
     ]
   },
-  "exact_added_count": {
-    "followups": 1
-  },
+  "exact_added_count": {},
   "forbidden": {
     "reps": [
       "added",
@@ -45,6 +37,7 @@
     ],
     "deals": [
       "added",
+      "changed",
       "removed"
     ],
     "activities": [
@@ -53,7 +46,7 @@
       "removed"
     ],
     "followups": [
-      "changed",
+      "added",
       "removed"
     ]
   },
@@ -62,5 +55,6 @@
   "task_id": "task_039",
   "world_seed": 1039,
   "difficulty": "medium",
-  "template": "act_on_a_deal"
+  "template": "act_on_a_followup",
+  "pattern": "single_record_act"
 }

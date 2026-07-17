@@ -1,0 +1,86 @@
+# ──────────────────────────────────────────────────────────────────────
+# TASK TYPE: sum_pipeline_with_distractor   (medium tier)
+#
+# WHAT THE MODEL IS ASKED (example):
+#   "Among our reps, sum the open pipeline for Grace Silva and Omar
+#    Haddad only -- do not include Priya Chen, even though I'm
+#    mentioning them here. Report the total as a plain number for
+#    total_value."
+#
+# WHAT IT TESTS:
+#   Same independent-parallel-lookup mechanism as sum_pipeline_by_reps,
+#   plus a named distractor rep the query explicitly says to exclude.
+#   Tests whether the model follows an explicit scoping instruction
+#   rather than summing every rep it sees mentioned -- not whether it
+#   can spot subtle data (the distractor owns zero open deals, so even
+#   glancing at their pipeline reveals nothing to include).
+#
+# HOW IT'S MADE VALID:
+#   Same as sum_pipeline_by_reps: value_a/value_b DECIDED first, total is
+#   their sum. The distractor rep only ever gets closed (won/lost) deals,
+#   so there is no open-deal figure to ever wrongly include.
+# ──────────────────────────────────────────────────────────────────────
+name: sum_pipeline_with_distractor
+pattern: parallel_independent
+answer_keys: [total_value]
+n_functions: 3      # list_reps + 2 independent find_deals calls (the distractor needs none)
+n_actions: 0
+
+# ── 1. dice rolls ────────────────────────────────────────────────────────
+params:
+  rep_a_name: {draw: person_name}
+  rep_b_name: {draw: person_name}
+  rep_c_name: {draw: person_name}   # distractor -- must be excluded
+  contact_a_name: {draw: person_name}
+  contact_b_name: {draw: person_name}
+  contact_c_name: {draw: person_name}
+  company_a: {draw: company}
+  company_b: {draw: company}
+  company_c: {draw: company}
+  value_a: {value_between: [5000, 80000]}
+  value_b: {value_between: [5000, 80000]}
+  total_value: {expr: "value_a + value_b"}
+
+# ── 2. rows planted into the world ─────────────────────────────────────
+kernel:
+  - {ref: rep_a, table: reps, row: {name: "{rep_a_name}"}}
+  - {ref: contact_a, table: contacts, row: {name: "{contact_a_name}", company: "{company_a}"}}
+  - {ref: lead_a_open, table: leads, row: {contact_id: "@contact_a"}}
+  - {ref: deal_a_open, table: deals,
+     row: {lead_id: "@lead_a_open", rep_id: "@rep_a",
+           stage: {choice: [prospecting, qualification, proposal, negotiation, closing]},
+           value: "{value_a}"}}
+  - {ref: lead_a_closed, table: leads, row: {contact_id: "@contact_a"}}
+  - {ref: deal_a_closed, table: deals,
+     row: {lead_id: "@lead_a_closed", rep_id: "@rep_a", stage: {choice: [won, lost]}}}
+
+  - {ref: rep_b, table: reps, row: {name: "{rep_b_name}"}}
+  - {ref: contact_b, table: contacts, row: {name: "{contact_b_name}", company: "{company_b}"}}
+  - {ref: lead_b_open, table: leads, row: {contact_id: "@contact_b"}}
+  - {ref: deal_b_open, table: deals,
+     row: {lead_id: "@lead_b_open", rep_id: "@rep_b",
+           stage: {choice: [prospecting, qualification, proposal, negotiation, closing]},
+           value: "{value_b}"}}
+  - {ref: lead_b_closed, table: leads, row: {contact_id: "@contact_b"}}
+  - {ref: deal_b_closed, table: deals,
+     row: {lead_id: "@lead_b_closed", rep_id: "@rep_b", stage: {choice: [won, lost]}}}
+
+  # distractor rep: named in the query, but owns zero open deals -- correct
+  # behavior is to exclude them from the sum entirely.
+  - {ref: rep_c, table: reps, row: {name: "{rep_c_name}"}}
+  - {ref: contact_c, table: contacts, row: {name: "{contact_c_name}", company: "{company_c}"}}
+  - {ref: lead_c_closed, table: leads, repeat: 2, row: {contact_id: "@contact_c"}}
+  - {ref: deal_c_closed, table: deals, repeat: 2,
+     row: {lead_id: "@lead_c_closed", rep_id: "@rep_c", stage: {choice: [won, lost]}}}
+
+# ── 3. what a correct solution must have changed: NOTHING (read-only) ──
+effects: {}
+
+# ── 4. the correct answer ──────────────────────────────────────────────
+answer: {total_value: "{total_value}"}
+
+# ── 5. the query (fixed form) ────────────────────────────────────────
+query: >-
+  Among our reps, sum the open pipeline for {rep_a_name} and {rep_b_name}
+  only -- do not include {rep_c_name}, even though I'm mentioning them
+  here. Report the total as a plain number for total_value.

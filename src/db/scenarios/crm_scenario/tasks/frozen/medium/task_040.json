@@ -1,19 +1,19 @@
 {
-  "query": "For the overdue follow-up on the Hooli deal: mark it as done, then push its due date to 2026-06-04. Answer with the followup_id you used.",
+  "query": "The new lead from Alice Iversen has gone quiet \u2014 correct its source to referral, then mark it as qualified. Report lead_id.",
   "answer_keys": [
-    "followup_id"
+    "lead_id"
   ],
   "ground_truth": {
-    "followup_id": 12
+    "lead_id": 27
   },
   "expected_added": {},
   "expected_changed": {
-    "followups": [
+    "leads": [
       {
-        "id": 12,
+        "id": 27,
         "fields": {
-          "status": "done",
-          "due_date": "2026-06-04"
+          "source": "referral",
+          "status": "qualified"
         }
       }
     ]
@@ -32,7 +32,6 @@
     ],
     "leads": [
       "added",
-      "changed",
       "removed"
     ],
     "deals": [
@@ -47,6 +46,7 @@
     ],
     "followups": [
       "added",
+      "changed",
       "removed"
     ]
   },
@@ -55,5 +55,6 @@
   "task_id": "task_040",
   "world_seed": 1040,
   "difficulty": "medium",
-  "template": "act_on_a_followup"
+  "template": "act_on_a_lead",
+  "pattern": "single_record_act"
 }

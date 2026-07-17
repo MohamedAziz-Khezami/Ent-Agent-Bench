@@ -3,8 +3,9 @@
 #
 # WHAT THE MODEL IS ASKED (example):
 #   "For each open follow-up on Kira Nakamura's deals: if it's more than
-#    7 days overdue, log a call about it; otherwise push its due date
-#    back by 3 days. Report how many you escalated as n_escalated."
+#    7 days overdue, log a call with the subject 'urgent follow-up' about
+#    it; otherwise push its due date back by 3 days. Report how many you
+#    escalated as n_escalated."
 #
 # WHAT IT TESTS:
 #   Iteration AND per-item branching combined — the hardest mechanism in
@@ -18,6 +19,7 @@
 #   follow-ups can never land on their deals — the group is closed.
 # ──────────────────────────────────────────────────────────────────────
 name: triage_each_followup
+pattern: iterate_over_set
 answer_keys: [n_escalated]
 n_functions: "1 + n_high + n_low"   # 1 group lookup + one action per follow-up
 n_actions: "n_high + n_low"
@@ -29,6 +31,10 @@ params:
   company: {draw: company}
   n_high: {randint: [1, 3]}   # will be >7 days overdue -> escalate
   n_low: {randint: [1, 3]}    # will be <=7 days overdue -> push due date
+  # quoted directly in the query below (the sibling act_on_a_* / decide_by_*
+  # templates all do the same for any free-text field the verifier checks
+  # exactly -- the model must never have to guess ungrounded text).
+  subject: {choice: [overdue check-in, urgent follow-up, escalation call, second reminder]}
 
 # ── 2. rows planted into the world ─────────────────────────────────────
 kernel:
@@ -53,7 +59,7 @@ kernel:
 effects:
   - for_each: highs
     added:
-      - {table: activities, row: {deal_id: "@item.deal_id", type: call, subject: overdue follow-up}}
+      - {table: activities, row: {deal_id: "@item.deal_id", type: call, subject: "{subject}"}}
   - for_each: lows
     changed:
       - {table: followups, id: "@item", fields: {due_date: {expr: "date_offset(item.due_date, 3)"}}}
@@ -64,5 +70,5 @@ answer: {n_escalated: "{n_high}"}
 # ── 5. the query (fixed form) ──────────────────────────────────────────
 query: >-
   For each open follow-up on {rep_name}'s deals: if it's more than 7 days
-  overdue, log a call about it; otherwise push its due date back by 3 days.
-  Report how many you escalated as n_escalated.
+  overdue, log a call with the subject '{subject}' about it; otherwise push
+  its due date back by 3 days. Report how many you escalated as n_escalated.

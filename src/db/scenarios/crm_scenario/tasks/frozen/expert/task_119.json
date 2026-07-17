@@ -60,5 +60,6 @@
   "task_id": "task_119",
   "world_seed": 1119,
   "difficulty": "expert",
-  "template": "update_every_matching_deal"
+  "template": "update_every_matching_deal",
+  "pattern": "iterate_over_set"
 }

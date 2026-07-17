@@ -16,6 +16,7 @@
 #   anchor's is past, and mark-as-done vs status=open — no-ops impossible.
 # ──────────────────────────────────────────────────────────────────────
 name: act_on_a_followup
+pattern: single_record_act
 answer_keys: [followup_id]
 n_functions: 2      # 1 lookup + 1 action
 n_actions: 1

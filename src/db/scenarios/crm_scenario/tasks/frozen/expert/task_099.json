@@ -54,5 +54,6 @@
   "task_id": "task_099",
   "world_seed": 1099,
   "difficulty": "expert",
-  "template": "decide_by_deal_value"
+  "template": "decide_by_deal_value",
+  "pattern": "conditional_branch"
 }

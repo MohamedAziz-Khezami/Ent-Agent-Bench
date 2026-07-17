@@ -1,18 +1,18 @@
 {
-  "query": "Please move it to the negotiation stage on the proposal deal with Initech. Report the deal_id.",
+  "query": "Our overdue follow-up on the Initech deal needs attention: push its due date to 2026-06-08. Give me the id as followup_id.",
   "answer_keys": [
-    "deal_id"
+    "followup_id"
   ],
   "ground_truth": {
-    "deal_id": 21
+    "followup_id": 7
   },
   "expected_added": {},
   "expected_changed": {
-    "deals": [
+    "followups": [
       {
-        "id": 21,
+        "id": 7,
         "fields": {
-          "stage": "negotiation"
+          "due_date": "2026-06-08"
         }
       }
     ]
@@ -36,6 +36,7 @@
     ],
     "deals": [
       "added",
+      "changed",
       "removed"
     ],
     "activities": [
@@ -45,7 +46,6 @@
     ],
     "followups": [
       "added",
-      "changed",
       "removed"
     ]
   },
@@ -54,5 +54,6 @@
   "task_id": "task_012",
   "world_seed": 1012,
   "difficulty": "easy",
-  "template": "act_on_a_deal"
+  "template": "act_on_a_followup",
+  "pattern": "single_record_act"
 }

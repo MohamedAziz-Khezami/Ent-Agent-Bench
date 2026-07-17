@@ -17,6 +17,7 @@
 #   disjoint pools — no-op impossible.
 # ──────────────────────────────────────────────────────────────────────
 name: act_on_a_deal
+pattern: single_record_act
 answer_keys: [deal_id]
 n_functions: 4      # 1 lookup + 3 actions
 n_actions: 3

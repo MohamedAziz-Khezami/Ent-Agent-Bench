@@ -1,5 +1,5 @@
 {
-  "query": "For each open follow-up on Priya Weber's deals: if it's more than 7 days overdue, log a call about it; otherwise push its due date back by 3 days. Report how many you escalated as n_escalated.",
+  "query": "For each open follow-up on Priya Weber's deals: if it's more than 7 days overdue, log a call with the subject 'urgent follow-up' about it; otherwise push its due date back by 3 days. Report how many you escalated as n_escalated.",
   "answer_keys": [
     "n_escalated"
   ],
@@ -11,17 +11,17 @@
       {
         "deal_id": 11,
         "type": "call",
-        "subject": "overdue follow-up"
+        "subject": "urgent follow-up"
       },
       {
         "deal_id": 18,
         "type": "call",
-        "subject": "overdue follow-up"
+        "subject": "urgent follow-up"
       },
       {
         "deal_id": 34,
         "type": "call",
-        "subject": "overdue follow-up"
+        "subject": "urgent follow-up"
       }
     ]
   },
@@ -30,19 +30,19 @@
       {
         "id": 12,
         "fields": {
-          "due_date": "2026-06-05"
+          "due_date": "2026-06-02"
         }
       },
       {
         "id": 19,
         "fields": {
-          "due_date": "2026-06-02"
+          "due_date": "2026-05-29"
         }
       },
       {
         "id": 6,
         "fields": {
-          "due_date": "2026-05-29"
+          "due_date": "2026-06-05"
         }
       }
     ]
@@ -85,5 +85,6 @@
   "task_id": "task_095",
   "world_seed": 1095,
   "difficulty": "expert",
-  "template": "triage_each_followup"
+  "template": "triage_each_followup",
+  "pattern": "iterate_over_set"
 }

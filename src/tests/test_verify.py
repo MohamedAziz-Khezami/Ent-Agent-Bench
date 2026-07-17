@@ -1,15 +1,33 @@
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
 from src.verifier.verify import verify
 
-FROZEN = Path(__file__).parent.parent / "db/scenarios/crm_scenario/tasks/frozen"
-# task_000: "mark it as done" on followup id=1 (a "changed" task)
-TASK_CHANGED = json.loads((FROZEN / "easy/task_000.json").read_text())
-# task_003: "schedule a follow-up for 2026-06-11" on deal id=2 (an "added" task)
-TASK_ADDED = json.loads((FROZEN / "easy/task_003.json").read_text())
+# Hand-built minimal task contracts (not read from the frozen corpus, which
+# reshuffles template assignments whenever it's regenerated) -- same shape
+# build_task()/verify() actually produce, just self-contained.
+_ALL_TABLES = ["reps", "contacts", "leads", "deals", "activities", "followups"]
+
+# "mark it as done" on followup id=1 (a "changed" task)
+TASK_CHANGED = {
+    "answer_keys": ["followup_id"],
+    "ground_truth": {"followup_id": 1},
+    "expected_added": {},
+    "exact_added_count": {},
+    "expected_changed": {"followups": [{"id": 1, "fields": {"status": "done"}}]},
+    "forbidden": {t: (["added", "changed", "removed"] if t != "followups" else ["added", "removed"])
+                  for t in _ALL_TABLES},
+}
+
+# "schedule a follow-up for 2026-06-11" on deal id=2 (an "added" task)
+TASK_ADDED = {
+    "answer_keys": ["deal_id"],
+    "ground_truth": {"deal_id": 2},
+    "expected_added": {"followups": [{"deal_id": 2, "due_date": "2026-06-11"}]},
+    "exact_added_count": {"followups": 1},
+    "expected_changed": {},
+    "forbidden": {t: (["added", "changed", "removed"] if t != "followups" else ["changed", "removed"])
+                  for t in _ALL_TABLES},
+}
 
 _GOOD_CHANGED_DIFF = {"followups": {"added": [], "removed": [],
                                      "changed": [(1, {"status": ("open", "done")})]}}

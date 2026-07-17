@@ -17,6 +17,7 @@
 #   plausibly confusable, never matching "overdue".
 # ──────────────────────────────────────────────────────────────────────
 name: act_on_a_followup
+pattern: single_record_act
 answer_keys: [followup_id]
 n_functions: 3      # 1 lookup + 2 actions
 n_actions: 2

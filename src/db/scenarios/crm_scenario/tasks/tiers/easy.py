@@ -2,5 +2,6 @@
 # (action count, distractors, phrasings) lives INSIDE the template file:
 # templates/easy/<name>.yaml — each tier owns self-contained copies.
 TIER_CONFIG = {
-    "templates": ["act_on_a_deal", "act_on_a_followup", "count_open_deals"],
+    "templates": ["act_on_a_deal", "act_on_a_followup", "count_open_deals",
+                   "sum_pipeline_by_reps"],
 }
