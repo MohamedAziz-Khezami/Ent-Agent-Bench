@@ -32,7 +32,8 @@ def _categorize_error(error: dict) -> str:
 
 class EpisodeMeter:
     def __init__(self, episode_id: str, model: str, surface: str, interaction_mode: str,
-                 task_id: str, difficulty: str, world_seed: int, n_functions_expected: int):
+                 task_id: str, difficulty: str, world_seed: int, n_functions_expected: int,
+                 template: str, pattern: str):
         self.episode_id = episode_id
         self.model = model
         self.surface = surface
@@ -41,6 +42,8 @@ class EpisodeMeter:
         self.difficulty = difficulty
         self.world_seed = world_seed
         self.n_functions_expected = n_functions_expected
+        self.template = template
+        self.pattern = pattern
 
         self._start = time.monotonic()
 
@@ -141,6 +144,8 @@ class EpisodeMeter:
             "interaction_mode": self.interaction_mode,
             "task_id": self.task_id,
             "difficulty": self.difficulty,
+            "template": self.template,
+            "pattern": self.pattern,
             "world_seed": self.world_seed,
             "passed": int(verify_result["passed"]),
             "answer_correct": answer_correct,

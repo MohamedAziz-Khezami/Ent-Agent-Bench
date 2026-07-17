@@ -6,7 +6,8 @@ from src.meter.meter import EpisodeMeter, _categorize_error
 def _new_meter(**overrides):
     defaults = dict(episode_id="ep_1", model="gemma4", surface="python",
                      interaction_mode="tool_call", task_id="task_007",
-                     difficulty="easy", world_seed=1007, n_functions_expected=2)
+                     difficulty="easy", world_seed=1007, n_functions_expected=2,
+                     template="act_on_a_deal", pattern="single_record_act")
     defaults.update(overrides)
     return EpisodeMeter(**defaults)
 
@@ -154,7 +155,7 @@ def test_verifier_reasons_joined():
 def test_identifying_fields_pass_through():
     m = _new_meter(model="claude-sonnet-5", surface="ts", interaction_mode="text_block",
                     task_id="task_042", difficulty="hard", world_seed=1042,
-                    n_functions_expected=4)
+                    n_functions_expected=4, template="act_on_a_lead", pattern="single_record_act")
     row = m.finalize(_passed_verify_result())
     assert row["model"] == "claude-sonnet-5"
     assert row["surface"] == "ts"
@@ -163,3 +164,5 @@ def test_identifying_fields_pass_through():
     assert row["difficulty"] == "hard"
     assert row["world_seed"] == 1042
     assert row["n_functions_expected"] == 4
+    assert row["template"] == "act_on_a_lead"
+    assert row["pattern"] == "single_record_act"

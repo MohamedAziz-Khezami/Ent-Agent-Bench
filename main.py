@@ -11,7 +11,7 @@ from src.db.scenarios.crm_scenario.tasks.build_tasks import FROZEN_DIR, build_al
 from src.llm_clients.registry import load_model_registry
 
 CSV_FIELDS = [
-    "episode_id", "model", "surface", "interaction_mode", "task_id", "difficulty", "world_seed",
+    "episode_id", "model", "surface", "interaction_mode", "task_id", "difficulty", "template", "pattern", "world_seed",
     "passed", "answer_correct", "db_correct", "fulfillment_score",
     "n_functions_expected", "tool_calls_made", "model_turns",
     "total_latency_seconds", "model_latency_seconds", "execution_latency_seconds",

@@ -34,7 +34,6 @@ then run this notebook top to bottom.""")
 
 code("""\
 import glob
-import json
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -256,31 +255,28 @@ code-mode anything to batch. So "the code-mode gap narrows at expert" (seen \
 above) could really mean "the gap narrows on iterate-over-a-set tasks", with \
 tier just riding along as a correlated label.
 
-Each frozen task's `template` field (and a coarser `pattern` bucketing) \
-lets us check this directly -- including a clean natural control: all four \
+Each episode's own `template`/`pattern` columns (written straight into the \
+CSV at run time from the frozen task it ran, not looked up afterward) let \
+us check this directly -- including a clean natural control: all four \
 `expert`-tier templates share the same nominal difficulty, but only two of \
 them are actually iterative, so comparing template-by-template *within* \
-`expert` isolates pattern while holding tier fixed.""")
+`expert` isolates pattern while holding tier fixed.
+
+Writing `template`/`pattern` into the CSV at run time (rather than joining \
+against whatever's currently in `frozen/` on disk) matters because the \
+corpus gets regenerated over time -- a `task_id` that was `count_open_deals` \
+when a CSV was produced can resolve to something else entirely after a \
+later regen, so a live join risks silently mislabeling old runs.""")
 
 code("""\
-FROZEN_DIR = Path("../src/db/scenarios/crm_scenario/tasks/frozen")
+if "template" not in clean.columns:
+    raise RuntimeError(
+        "this results CSV predates the template/pattern columns -- "
+        "re-run the benchmark to get them (see main.py's CSV_FIELDS)."
+    )
 
-# `pattern` is a first-class field on every frozen task (set in build_tasks.py
-# from each template YAML's own `pattern:` key) -- not a notebook-side guess,
-# so it can't drift out of sync with the corpus the way a hand-maintained
-# lookup table would.
-task_meta = []
-for p in FROZEN_DIR.glob("*/*.json"):
-    d = json.loads(p.read_text())
-    task_meta.append({"difficulty": d["difficulty"], "task_id": d["task_id"],
-                       "template": d["template"], "pattern": d["pattern"]})
-task_meta = pd.DataFrame(task_meta).drop_duplicates(subset=["difficulty", "task_id"])
-
-clean = clean.merge(task_meta, on=["difficulty", "task_id"], how="left", validate="many_to_one")
-assert clean["template"].notna().all(), "some episodes didn't match a frozen task"
-
-print(f"templates per tier:")
-display(task_meta.groupby("difficulty")["template"].unique())""")
+print("templates per tier:")
+display(clean.groupby("difficulty")["template"].unique())""")
 
 code("""\
 PATTERN_ORDER = ["single_record_act", "single_query_aggregate", "dependent_chain",

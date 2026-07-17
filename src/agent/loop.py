@@ -132,7 +132,7 @@ def run_episode(model_config, surface: str, interaction_mode: str, task: dict,
         trajectory_dir = TRAJECTORY_DIR
     world_seed = task["world_seed"]
     episode_id = uuid.uuid4().hex[:8]
-    meter = EpisodeMeter(episode_id, model_config.name, surface, interaction_mode, task["task_id"], task["difficulty"], world_seed, task["n_functions"])
+    meter = EpisodeMeter(episode_id, model_config.name, surface, interaction_mode, task["task_id"], task["difficulty"], world_seed, task["n_functions"], task["template"], task["pattern"])
     traj = Trajectory(episode_id, model_config.name, surface, interaction_mode, task["task_id"], task["query"])
     client = make_client(model_config)
     turn_budget = TURN_BUDGET
